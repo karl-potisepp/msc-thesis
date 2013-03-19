@@ -56,7 +56,7 @@ public class Data {
 		ny = imp.getHeight();
 		nz = imp.getStackSize();
 	}
-	
+
 	/**
 	 * Return the minimum value of the input image.
 	 */	
