@@ -4,7 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="/home/karl/kool/msc_thesis/big_img/commons-math3-3.1.1/commons-math3-3.1.1.jar"/>
 	<classpathentry kind="lib" path="/home/karl/kool/msc_thesis/big_img/hadoop-1.0.3/lib/commons-logging-1.1.1.jar"/>
-	<classpathentry kind="lib" path="/home/karl/kool/msc_thesis/big_img/hadoop-1.0.3/hadoop-core-1.0.3.jar" sourcepath="/hadoop-trunk"/>
+	<classpathentry kind="lib" path="/home/karl/kool/msc_thesis/big_img/hadoop-1.0.3/hadoop-core-1.0.3.jar" sourcepath="/home/karl/eclipse_workspace/hadoop-release-1.0.3"/>
 	<classpathentry kind="lib" path="/home/karl/kool/msc_thesis/big_img/ij.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

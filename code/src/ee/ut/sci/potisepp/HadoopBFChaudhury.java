@@ -42,14 +42,16 @@ public class HadoopBFChaudhury {
 		public void map(Text key, BytesWritable value, OutputCollector<Text, BytesWritable> output, Reporter reporter) throws IOException
 		{							
 			
-			//extract height & width from the key
-			String[] parts = key.toString().split(";");
-			int width = Integer.valueOf(parts[1]);
-			int height = Integer.valueOf(parts[2]);
+			//extract info from the key
+			String[] p = key.toString().split(";");
+			int width = Integer.valueOf(p[1]);
+			int height = Integer.valueOf(p[2]);
+			int channels = Integer.valueOf(p[3]);
+			int bpp = Integer.valueOf(p[4]);
+			float min = Float.parseFloat(p[5]);
+			float max = Float.parseFloat(p[6]);
 			int numPixels = width*height;
-						
-//			System.out.println("infile: " + infile);
-//			System.out.println("outfile: " + outfile);
+
 			System.out.println("sigRange: " + sigma_r);
 			System.out.println("sigmaX: " + sigma_s);
 			System.out.println("sigmaY: " + sigma_s);
@@ -62,11 +64,11 @@ public class HadoopBFChaudhury {
 			//TODO implement class FloatArrayWritable
 			//substitute FloatArrayWritable with Data
 			
-			Data data = new Data(input);
+//			Data data = new Data(input);
 					
 			filter.setMultithread(true);
 			filter.selectChannels(0, 0.0);
-			int order[] = filter.computeOrder(data);
+			int order[] = filter.computeOrder(min, max);
 			int n = order[3]-order[2];
 			if (n > 500)
 				return;
@@ -74,19 +76,20 @@ public class HadoopBFChaudhury {
 			// --------------------------------------------------------------------------
 			// Convert and process the input image
 			// --------------------------------------------------------------------------
-			int nx = input.getWidth();
-			int ny = input.getHeight();
-			int nz = input.getStackSize();
+			int nx = width; //input.getWidth();
+			int ny = height; //input.getHeight();
+			int nz = channels; //input.getStackSize();
 			int nxy = nx*ny;
 
 			ImageStack stack = new ImageStack(nx, ny);
 			
 			long chrono = System.currentTimeMillis();
 			
-			if (input.getType() == ImagePlus.COLOR_RGB) {
+//			if (input.getType() == ImagePlus.COLOR_RGB) {
+			if (channels == 3) {
 				int rgb[][] = new int[nz][nxy];
 				for(int c=0; c<3; c++) {
-					float out[] = filter.execute(data, c);
+					float out[] = filter.execute(value, c);
 					int shift = 8*(2-c);
 					for(int z=0; z<nz; z++)
 					for(int k=0; k<nxy; k++) 
@@ -99,8 +102,9 @@ public class HadoopBFChaudhury {
 				}
 			}
 			else {
-				float out[] = filter.execute(data, 0);
-				if (input.getType() == ImagePlus.GRAY8) {
+				float out[] = filter.execute(value, 0);
+//				if (input.getType() == ImagePlus.GRAY8) {
+				if (channels == 1 && bpp == 8){
 					for(int z=0; z<nz; z++) {
 						byte gray[] = new byte[nxy];
 						for(int x=0; x<nxy; x++)
@@ -108,7 +112,8 @@ public class HadoopBFChaudhury {
 						stack.addSlice("", new ByteProcessor(nx, ny, gray, null));
 					}
 				}
-				else if (input.getType() == ImagePlus.GRAY16) {
+//				else if (input.getType() == ImagePlus.GRAY16) {
+				else if (channels == 1 && bpp == 16){
 					for(int z=0; z<nz; z++) {
 						short gray[] = new short[nxy];
 						for(int x=0; x<nxy; x++)
@@ -116,7 +121,8 @@ public class HadoopBFChaudhury {
 						stack.addSlice("", new ShortProcessor(nx, ny, gray, null));
 					}
 				}
-				else if (input.getType() == ImagePlus.GRAY32) {
+//				else if (input.getType() == ImagePlus.GRAY32) {
+				else if (channels == 1 && bpp == 32){
 					for(int z=0; z<nz; z++) {
 						float gray[] = new float[nxy];
 						for(int x=0; x<nxy; x++)
@@ -128,8 +134,8 @@ public class HadoopBFChaudhury {
 			
 			System.out.println("Time (ms): " + (System.currentTimeMillis()-chrono) );
 					
-			if (stack.getSize() == input.getStackSize()) {
-				ImagePlus impout = new ImagePlus("BFI on " + input.getTitle() + " (" + sigma_s + "-" + sigma_r + ") ", stack);
+			if (stack.getSize() == channels) {
+				ImagePlus impout = new ImagePlus("BFI on " + p[0] + " (" + sigma_s + "-" + sigma_r + ") ", stack);
 //
 //				PNG_Writer writer = new PNG_Writer();
 //				
