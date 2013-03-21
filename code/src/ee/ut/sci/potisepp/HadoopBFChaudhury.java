@@ -1,31 +1,20 @@
 package ee.ut.sci.potisepp;
 
-import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.plugin.PNG_Writer;
 import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ShortProcessor;
 
 import java.io.IOException;
-import java.text.DecimalFormat;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-//import org.apache.commons.logging.Log;
-//import org.apache.commons.logging.LogFactory;
-import org.apache.commons.math3.analysis.function.Gaussian;
-import org.apache.commons.math3.analysis.function.Gaussian.Parametric;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapred.*;
 
 public class HadoopBFChaudhury {
 	
-	public static class MyMap extends MapReduceBase implements Mapper<Text, BytesWritable, Text, BytesWritable>{
+	public static class MyMap extends MapReduceBase implements Mapper<Text, Data, Text, Data>{
 		
 		//2*sigma_s+1 is the width of the kernel in pixels
 		float sigma_s;
@@ -39,7 +28,7 @@ public class HadoopBFChaudhury {
 			sigma_r = Float.valueOf(conf.get("sigma_r"));
 	    }
 		
-		public void map(Text key, BytesWritable value, OutputCollector<Text, BytesWritable> output, Reporter reporter) throws IOException
+		public void map(Text key, Data value, OutputCollector<Text, Data> output, Reporter reporter) throws IOException
 		{							
 			
 			//extract info from the key
@@ -48,27 +37,18 @@ public class HadoopBFChaudhury {
 			int height = Integer.valueOf(p[2]);
 			int channels = Integer.valueOf(p[3]);
 			int bpp = Integer.valueOf(p[4]);
-			float min = Float.parseFloat(p[5]);
-			float max = Float.parseFloat(p[6]);
-			int numPixels = width*height;
-
+//			float min = Float.parseFloat(p[5]);
+//			float max = Float.parseFloat(p[6]);
 			System.out.println("sigRange: " + sigma_r);
 			System.out.println("sigmaX: " + sigma_s);
 			System.out.println("sigmaY: " + sigma_s);
 			System.out.println("sigmaZ: " + sigma_s);
 			
 			Filter filter = new Filter(sigma_r, sigma_s, sigma_s, sigma_s);
-			
-//			ImagePlus input = new ImagePlus(infile);
-			
-			//TODO implement class FloatArrayWritable
-			//substitute FloatArrayWritable with Data
-			
-//			Data data = new Data(input);
 					
 			filter.setMultithread(true);
 			filter.selectChannels(0, 0.0);
-			int order[] = filter.computeOrder(min, max);
+			int order[] = filter.computeOrder(value);
 			int n = order[3]-order[2];
 			if (n > 500)
 				return;
@@ -76,9 +56,9 @@ public class HadoopBFChaudhury {
 			// --------------------------------------------------------------------------
 			// Convert and process the input image
 			// --------------------------------------------------------------------------
-			int nx = width; //input.getWidth();
-			int ny = height; //input.getHeight();
-			int nz = channels; //input.getStackSize();
+			int nx = value.nx; //input.getWidth();
+			int ny = value.ny; //input.getHeight();
+			int nz = value.nz; //input.getStackSize();
 			int nxy = nx*ny;
 
 			ImageStack stack = new ImageStack(nx, ny);
@@ -133,36 +113,27 @@ public class HadoopBFChaudhury {
 			}
 			
 			System.out.println("Time (ms): " + (System.currentTimeMillis()-chrono) );
-					
-			if (stack.getSize() == channels) {
+			
+			if (stack.getSize() == value.nz) {
 				ImagePlus impout = new ImagePlus("BFI on " + p[0] + " (" + sigma_s + "-" + sigma_r + ") ", stack);
-//
-//				PNG_Writer writer = new PNG_Writer();
-//				
-//				try {
-//					writer.writeImage(impout, outfile, 0);
-//				} catch (Exception e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-				
-			}
+				value = new Data(impout);
+			}		
 			
 			reporter.setStatus("done");
 						
-			output.collect(key, new BytesWritable(result));
+			output.collect(key, value);
 		}
 			
 	}
 	
-	public static class MyReduce extends MapReduceBase implements Reducer<Text, BytesWritable, Text, BytesWritable>{		
-		public void reduce(Text key, Iterator<BytesWritable> values, OutputCollector<Text, BytesWritable> output, Reporter reporter) throws IOException
-		{
-			while(values.hasNext()){
-				output.collect(key, values.next());
-			}
-		}		
-	}
+//	public static class MyReduce extends MapReduceBase implements Reducer<Text, BytesWritable, Text, BytesWritable>{		
+//		public void reduce(Text key, Iterator<BytesWritable> values, OutputCollector<Text, BytesWritable> output, Reporter reporter) throws IOException
+//		{
+//			while(values.hasNext()){
+//				output.collect(key, values.next());
+//			}
+//		}		
+//	}
 
 	public static void main(String[] args) throws Exception {
 		
@@ -179,12 +150,12 @@ public class HadoopBFChaudhury {
 			conf.setInt("sigma_s", Integer.valueOf(args[2]));			
 		}
 		else{
-			conf.setFloat("sigma_r", 0.15f);
-			conf.setInt("sigma_s", 16);
+			conf.setFloat("sigma_r", 40.0f);
+			conf.setInt("sigma_s", 80);
 		}		
 		
 		conf.setOutputKeyClass(Text.class);
-		conf.setOutputValueClass(BytesWritable.class);
+		conf.setOutputValueClass(Data.class);
 		
 		conf.setMapperClass(MyMap.class);
 //		conf.setReducerClass(MyReduce.class);

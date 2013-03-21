@@ -28,6 +28,9 @@ public class SequentialBF {
 		float sigmaY = Float.parseFloat(args[4]);
 		float sigmaZ = Float.parseFloat(args[5]);
 		
+		infile = "/home/karl/kool/msc_thesis/big_img/mapreduce_in/Lenna.png";
+		outfile = "/home/karl/kool/msc_thesis/big_img/Lenna_bf.png";
+		
 		System.out.println("infile: " + infile);
 		System.out.println("outfile: " + outfile);
 		System.out.println("sigRange: " + sigRange);

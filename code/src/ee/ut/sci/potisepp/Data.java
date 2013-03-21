@@ -26,6 +26,12 @@
 //=====================================================================================
 package ee.ut.sci.potisepp;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+
+import org.apache.hadoop.io.Writable;
+
 import ij.ImagePlus;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
@@ -34,7 +40,7 @@ import ij.process.ImageProcessor;
 /**
  * This class contains the input data.
  */
-public class Data {
+public class Data implements Writable{
 	
 	private float pixels[][];
 	private float max;
@@ -42,6 +48,7 @@ public class Data {
 	public int nx;
 	public int ny;
 	public int nz;
+	public int nc; //no. of channels
 	
 	/**
 	* Constructor.
@@ -86,6 +93,7 @@ public class Data {
 		int ny = imp.getHeight();
 		int nz = imp.getStackSize();
 		int nxy = nx*ny;
+		this.nc = 1;
 		int size = nx * ny * nz;
 		min = Float.MAX_VALUE;
 		max = -Float.MAX_VALUE;
@@ -126,6 +134,7 @@ public class Data {
 		int ny = imp.getHeight();
 		int nz = imp.getStackSize();
 		int size = nx * ny * nz;
+		this.nc = 3;
 		float in[][] = new float[3][size];
 		min = Float.MAX_VALUE;
 		max = -Float.MAX_VALUE;
@@ -148,5 +157,27 @@ public class Data {
 		}
 		
 		return in;
+	}
+	
+	//functions for MapReduce
+
+	@Override
+	public void write(DataOutput out) throws IOException {
+		int size = nx * ny * nz;
+		for (int c = 0; c < nc; c++){
+			for (int index = 0; index < size; index++){
+				out.writeFloat(pixels[c][index]);
+			}
+		}		
+	}
+
+	@Override
+	public void readFields(DataInput in) throws IOException {
+		int size = nx * ny * nz;
+		for (int c = 0; c < nc; c++){
+			for (int index = 0; index < size; index++){
+				pixels[c][index] = in.readFloat();
+			}
+		}		
 	}
 }

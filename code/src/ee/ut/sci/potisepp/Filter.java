@@ -125,11 +125,6 @@ public class Filter {
 		
 		float min = data.getMinimum();
 		float max = data.getMaximum();
-		return computeOrder(min, max);
-		
-	}
-	
-	public int[] computeOrder(float min, float max) {	
 		
 		T = max - min;
 		int N = 3;
