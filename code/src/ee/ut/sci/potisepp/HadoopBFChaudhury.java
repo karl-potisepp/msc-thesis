@@ -33,16 +33,8 @@ public class HadoopBFChaudhury {
 			
 			//extract info from the key
 			String[] p = key.toString().split(";");
-//			int width = Integer.valueOf(p[1]);
-//			int height = Integer.valueOf(p[2]);
 			int channels = Integer.valueOf(p[3]);
 			int bpp = Integer.valueOf(p[4]);
-//			float min = Float.parseFloat(p[5]);
-//			float max = Float.parseFloat(p[6]);
-			System.out.println("sigRange: " + sigma_r);
-			System.out.println("sigmaX: " + sigma_s);
-			System.out.println("sigmaY: " + sigma_s);
-			System.out.println("sigmaZ: " + sigma_s);
 			
 			Filter filter = new Filter(sigma_r, sigma_s, sigma_s, sigma_s);
 					
@@ -56,16 +48,15 @@ public class HadoopBFChaudhury {
 			// --------------------------------------------------------------------------
 			// Convert and process the input image
 			// --------------------------------------------------------------------------
-			int nx = value.nx; //input.getWidth();
-			int ny = value.ny; //input.getHeight();
-			int nz = value.nz; //input.getStackSize();
+			int nx = value.nx; 
+			int ny = value.ny; 
+			int nz = value.nz; 
 			int nxy = nx*ny;
 
 			ImageStack stack = new ImageStack(nx, ny);
 			
 			long chrono = System.currentTimeMillis();
 			
-//			if (input.getType() == ImagePlus.COLOR_RGB) {
 			if (channels == 3) {
 				int rgb[][] = new int[nz][nxy];
 				for(int c=0; c<3; c++) {
@@ -83,7 +74,6 @@ public class HadoopBFChaudhury {
 			}
 			else {
 				float out[] = filter.execute(value, 0);
-//				if (input.getType() == ImagePlus.GRAY8) {
 				if (channels == 1 && bpp == 8){
 					for(int z=0; z<nz; z++) {
 						byte gray[] = new byte[nxy];
@@ -92,7 +82,6 @@ public class HadoopBFChaudhury {
 						stack.addSlice("", new ByteProcessor(nx, ny, gray, null));
 					}
 				}
-//				else if (input.getType() == ImagePlus.GRAY16) {
 				else if (channels == 1 && bpp == 16){
 					for(int z=0; z<nz; z++) {
 						short gray[] = new short[nxy];
@@ -101,7 +90,6 @@ public class HadoopBFChaudhury {
 						stack.addSlice("", new ShortProcessor(nx, ny, gray, null));
 					}
 				}
-//				else if (input.getType() == ImagePlus.GRAY32) {
 				else if (channels == 1 && bpp == 32){
 					for(int z=0; z<nz; z++) {
 						float gray[] = new float[nxy];
@@ -125,15 +113,6 @@ public class HadoopBFChaudhury {
 		}
 			
 	}
-	
-//	public static class MyReduce extends MapReduceBase implements Reducer<Text, BytesWritable, Text, BytesWritable>{		
-//		public void reduce(Text key, Iterator<BytesWritable> values, OutputCollector<Text, BytesWritable> output, Reporter reporter) throws IOException
-//		{
-//			while(values.hasNext()){
-//				output.collect(key, values.next());
-//			}
-//		}		
-//	}
 
 	public static void main(String[] args) throws Exception {
 		
@@ -158,7 +137,6 @@ public class HadoopBFChaudhury {
 		conf.setOutputValueClass(Data.class);
 		
 		conf.setMapperClass(MyMap.class);
-//		conf.setReducerClass(MyReduce.class);
 		conf.setNumReduceTasks(0);
 		
 		conf.setInputFormat(MyInputFormat.class);
