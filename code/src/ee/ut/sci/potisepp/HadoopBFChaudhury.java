@@ -33,8 +33,8 @@ public class HadoopBFChaudhury {
 			
 			//extract info from the key
 			String[] p = key.toString().split(";");
-			int width = Integer.valueOf(p[1]);
-			int height = Integer.valueOf(p[2]);
+//			int width = Integer.valueOf(p[1]);
+//			int height = Integer.valueOf(p[2]);
 			int channels = Integer.valueOf(p[3]);
 			int bpp = Integer.valueOf(p[4]);
 //			float min = Float.parseFloat(p[5]);
