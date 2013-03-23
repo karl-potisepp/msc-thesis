@@ -2,3 +2,5 @@ code/bin/*
 code/.classpath
 *.DS_Store
 .DS_Store
+
+code/.classpath
