@@ -129,8 +129,8 @@ public class HadoopBFChaudhury {
 			conf.setInt("sigma_s", Integer.valueOf(args[2]));			
 		}
 		else{
-			conf.setFloat("sigma_r", 40.0f);
-			conf.setInt("sigma_s", 80);
+			conf.setFloat("sigma_r", 100.0f);
+			conf.setInt("sigma_s", 10);
 		}		
 		
 		conf.setOutputKeyClass(Text.class);
@@ -141,6 +141,9 @@ public class HadoopBFChaudhury {
 		
 		conf.setInputFormat(MyInputFormat.class);
 		conf.setOutputFormat(MyOutputFormat.class);
+		
+		conf.set("mapred.reduce.child.java.opts", "-Xmx15000m");
+		conf.set("mapred.tasktracker.map.tasks.maximum", "2");
 		
 		FileInputFormat.setInputPaths(conf, new Path(args[0]));
 		FileOutputFormat.setOutputPath(conf, new Path(args[1]));

@@ -44,9 +44,11 @@ public class MyImageReader implements RecordReader<Text, Data>{
 		int bpp = img.getColorModel().getPixelSize();
 		
 		ImagePlus imp = new ImagePlus("", img);
+		img = null;
 		value = new Data(imp);
+		imp = null;
 		
-		//set key to the form of "FILENAME.EXTENSION;WIDTH_PIXELS;HEIGHT_PIXELS;NO_CHANNELS
+		//set key to the form of "FILENAME.EXTENSION;WIDTH_PIXELS;HEIGHT_PIXELS;NB_CHANNELS
 		String filename = path.toString();
 		String sizeinfo = "";
 		sizeinfo += ";" + String.valueOf(value.nx);
