@@ -4,3 +4,6 @@ code/.classpath
 .DS_Store
 
 code/.classpath
+
+metadata_extractor/bin/*
+metadata_extractor/.classpath
