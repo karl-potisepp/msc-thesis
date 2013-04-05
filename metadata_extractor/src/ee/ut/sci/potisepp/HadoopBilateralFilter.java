@@ -17,9 +17,12 @@ public class HadoopBilateralFilter {
 		{			
 			
 			//TODO extract PSNR 
-			//http://bigwww.epfl.ch/sage/soft/snr/			
+			//http://bigwww.epfl.ch/sage/soft/snr/
+			
+			//find the box
 								
 			output.collect(key, new BytesWritable(result));
+			
 		}
 		
 		

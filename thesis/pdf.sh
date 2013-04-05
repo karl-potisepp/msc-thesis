@@ -2,8 +2,10 @@
 
 mkdir out
 cd out
-latex ../thesis.tex
 cp ../bibliography.bib .
+cp ../ut_thesis.sty .
+cp ../ut_thesis_utf8.sty .
+latex ../thesis.tex
 bibtex thesis.aux
 latex ../thesis.tex
 latex ../thesis.tex
