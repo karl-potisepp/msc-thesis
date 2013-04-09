@@ -21,7 +21,7 @@ public class HadoopBilateralFilter {
 			
 			//find the box
 								
-			output.collect(key, new BytesWritable(result));
+//			output.collect(key, new BytesWritable(result));
 			
 		}
 		

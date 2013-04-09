@@ -49,7 +49,6 @@ public class MyImageReader implements RecordReader<Text, Data>{
 		
 		ImagePlus imp = new ImagePlus("", img);
 		img = null;
-		value = new Data(imp);
 		imp = null;
 		
 		//set key to the form of "FILENAME.EXTENSION;WIDTH_PIXELS;HEIGHT_PIXELS;NB_CHANNELS

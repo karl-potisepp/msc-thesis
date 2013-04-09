@@ -116,13 +116,14 @@ In this chapter I will provide a thorough description of all technologies and me
 MapReduce is a programming model developed by Google for processing and generating large datasets used in practice for many real-world tasks \cite{Dean:2008:MSD:1327452.1327492}. In this section, I will focus on describing the general philosophy and methodology behind this model, whereas the following part will describe in more detail one of the more popular implementations of the model - Hadoop - which is also used for all the practical applications featured in this work.
 
 The basic idea behind MapReduce is based on the observation that a lot of processing tasks involving large amounts of data (measured in terabytes) all need to deal with the issues of distributing the data across a network of computers to ensure that the available storage and CPU resources are maximally utilised, and it would be easier if programmers could focus on writing the actual processing part that differs task by task.
-
+ 
 Description of the general philosophy of MapReduce, the logic behind Map/Reduce/etc. parts of the processing chain, and how this approach suits/is cumbersome when dealing with image processing.
 
-\subsection{Hadoop}
-More in-depth explanation about how Hadoop as a freely-available and popular MapReduce framework suits the needs of this work.
-\subsubsection{HDFS}
-what is the Hadoop Distributed File System and how does it restrict image processing using MapReduce.
+\subsection{Apache Hadoop}
+Hadoop is an open-source framework for distributed computing developed by the Apache Foundation, inspired by Google's MapReduce (TODO cite Hadoop and MapReduce papers). It has been in development since 2005 and - at the time of writing this work - is one of the most popular freely available applications of it's kind. Due to this and also a large user base ranging from home users to large companies makes Hadoop a good candidate for attempting to use it for image processing.
+
+\subsubsection{Hadoop Distributed File System (HDFS)}
+HDFS is the underlying file system that Hadoop uses in order to store data meant to be processed by MapReduce. It is inspired by the Google File System (GFS) (TODO cite). There are two reasons why the file system comes into play when discussing image processing using Hadoop. Firstly the distributed nature of HDFS ensures that all input data is spread across the cluster's storage so that at least initially every worker can process data stored on it's local hard drive. Secondly, the configured block size somewhat restricts the storage of files - if a file is larger than the block size and can not easily be split, then all it's blocks will have to be stored in the same location, which in essence means that the advantages from having a small block size are lost.
 
 \section{Image processing}
 Description of what is meant by image processing within the scope of this thesis.
@@ -145,6 +146,9 @@ Description of how the methodology established in this thesis was applied to rea
 What sort of image, why does it need processing?
 
 \subsection{Bilateral Filter Algorithm}
+
+In order to somehow gauge the feasibility of using Hadoop MapReduce as a platform for image processing, I used the implementation of a bilateral filter by Chaudhury et al. (TODO cite).
+
 Description of the bilateral filter algorithm, it's applications and details about the implementation used for benchmarking.
 
 \section{Analysis of many small images}
