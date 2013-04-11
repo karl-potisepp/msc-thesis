@@ -28,8 +28,8 @@ public class SequentialBF {
 		float sigmaY = Float.parseFloat(args[4]);
 		float sigmaZ = Float.parseFloat(args[5]);
 		
-		infile = "../../../big_img/lenna1.png";
-		outfile = "../../../big_img/lenna1_bf.png";
+		//infile = "../../../big_img/lenna1.png";
+		//outfile = "../../../big_img/lenna1_bf.png";
 		
 		System.out.println("infile: " + infile);
 		System.out.println("outfile: " + outfile);
