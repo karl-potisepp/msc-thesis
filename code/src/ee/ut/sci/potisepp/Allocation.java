@@ -43,12 +43,12 @@ public class Allocation implements Runnable {
 	}
 	
 	public void run() {
-		System.out.println("ALLOCATING FOR "+ nchannels + " x " + size + " PIXELS");
-		System.out.println("BEFORE:\t" + (Runtime.getRuntime().maxMemory())/(1024*1024));
-		System.out.println("BEFORE:\t" + (Runtime.getRuntime().totalMemory())/(1024*1024));
+//		System.out.println("ALLOCATING FOR "+ nchannels + " x " + size + " PIXELS");
+//		System.out.println("BEFORE:\t" + (Runtime.getRuntime().maxMemory())/(1024*1024));
+//		System.out.println("BEFORE:\t" + (Runtime.getRuntime().totalMemory())/(1024*1024));
 		array = new float[nchannels][size];
-		System.out.println("AFTER:\t" + (Runtime.getRuntime().maxMemory())/(1024*1024));
-		System.out.println("AFTER:\t" + (Runtime.getRuntime().totalMemory())/(1024*1024));
+//		System.out.println("AFTER:\t" + (Runtime.getRuntime().maxMemory())/(1024*1024));
+//		System.out.println("AFTER:\t" + (Runtime.getRuntime().totalMemory())/(1024*1024));
 	}
 	
 	protected float[][] getArray() {

@@ -29,7 +29,8 @@ public class HadoopBFChaudhury {
 	    }
 		
 		public void map(Text key, Data value, OutputCollector<Text, Data> output, Reporter reporter) throws IOException
-		{							
+		{	
+			long chrono = System.currentTimeMillis();
 			
 			//extract info from the key
 			String[] p = key.toString().split(";");
@@ -37,7 +38,7 @@ public class HadoopBFChaudhury {
 			int bpp = Integer.valueOf(p[4]);
 			
 			Filter filter = new Filter(sigma_r, sigma_s, sigma_s, sigma_s);
-					
+
 			filter.setMultithread(true);
 			filter.selectChannels(0, 0.0);
 			int order[] = filter.computeOrder(value);
@@ -55,7 +56,7 @@ public class HadoopBFChaudhury {
 
 			ImageStack stack = new ImageStack(nx, ny);
 			
-			long chrono = System.currentTimeMillis();
+			
 			
 			if (channels == 3) {
 				int rgb[][] = new int[nz][nxy];
@@ -100,7 +101,7 @@ public class HadoopBFChaudhury {
 				}
 			}
 			
-			System.out.println("Time (ms): " + (System.currentTimeMillis()-chrono) );
+			
 			
 			if (stack.getSize() == value.nz) {
 				ImagePlus impout = new ImagePlus("BFI on " + p[0] + " (" + sigma_s + "-" + sigma_r + ") ", stack);
@@ -108,8 +109,9 @@ public class HadoopBFChaudhury {
 			}		
 			
 			reporter.setStatus("done");
-						
 			output.collect(key, value);
+			
+			System.out.println("Time (ms): " + (System.currentTimeMillis()-chrono) );
 		}
 			
 	}
