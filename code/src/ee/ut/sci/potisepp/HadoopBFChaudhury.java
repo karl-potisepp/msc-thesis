@@ -145,7 +145,7 @@ public class HadoopBFChaudhury {
 		conf.setOutputFormat(MyOutputFormat.class);
 		
 		conf.set("mapred.reduce.child.java.opts", "-Xmx15000m");
-		conf.set("mapred.tasktracker.map.tasks.maximum", "2");
+		//conf.set("mapred.tasktracker.map.tasks.maximum", "2");
 		
 		FileInputFormat.setInputPaths(conf, new Path(args[0]));
 		FileOutputFormat.setOutputPath(conf, new Path(args[1]));

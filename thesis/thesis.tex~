@@ -93,7 +93,10 @@ Lots of images on the internet, youtube, produced by high definition cameras. Re
 
 \subsection{Why MapReduce?}
 
-Problem statement. What is the problem, why does it need to be solved, why solve it this way?
+Problem statement. What is the problem, why does it need to be solved, why solve it this way? 
+
+What are the alternatives? batch processing on the PC is feasible for only small amounts of data; maintaining a purpose-built computer cluster is only cost-effective for very large and important problems; Hadoop is affordable and easy to use, yet can be used even if the data scales to huge sizes making it ideal for this (however we need to find out whether that is the case)
+
 
 \chapter{Background}
 
