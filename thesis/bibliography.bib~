@@ -179,5 +179,30 @@ year={2011},
 abstract={BACKGROUND Tissue MicroArrays (TMAs) are a valuable platform for tissue based translational research and the discovery of tissue biomarkers. The digitised TMA slides or TMA Virtual Slides, are ultra-large digital images, and can contain several hundred samples. The processing of such slides is time-consuming, bottlenecking a potentially high throughput platform. METHODS A High Performance Computing (HPC) platform for the rapid analysis of TMA virtual slides is presented in this study. Using an HP high performance cluster and a centralised dynamic load balancing approach, the simultaneous analysis of multiple tissue-cores were established. This was evaluated on Non-Small Cell Lung Cancer TMAs for complex analysis of tissue pattern and immunohistochemical positivity. RESULTS The automated processing of a single TMA virtual slide containing 230 patient samples can be significantly speeded up by a factor of circa 22, bringing the analysis time to one minute. Over 90 TMAs could also be analysed simultaneously, speeding up multiplex biomarker experiments enormously. CONCLUSIONS The methodologies developed in this paper provide for the first time a genuine high throughput analysis platform for TMA biomarker discovery that will significantly enhance the reliability and speed for biomarker research. This will have widespread implications in translational tissue based research. }
 }
  
+@article{Bonorden2003187,
+title = "The Paderborn University BSP (PUB) library",
+journal = "Parallel Computing",
+volume = "29",
+number = "2",
+pages = "187 - 207",
+year = "2003",
+note = "",
+issn = "0167-8191",
+doi = "10.1016/S0167-8191(02)00218-1",
+url = "http://www.sciencedirect.com/science/article/pii/S0167819102002181",
+author = "Olaf Bonorden and Ben Juurlink and Ingo von Otte and Ingo Rieping",
+keywords = "Parallel communication library",
+keywords = "Bulk synchronous parallel model",
+keywords = "Nested parallelism",
+keywords = "Oblivious synchronization",
+keywords = "Collective communication"
+}
 
+@ONLINE{imagej,
+ author = {Rasband, Wayne},
+ title = {ImageJ - Image Processing And Analysis In Java},
+ month = {December},
+ year = {2010},
+ url = {\url{http://www.facebook.com/notes/facebook-engineering/looking-at-the-code-behind-our-three-uses-of-apache-hadoop/468211193919?_fb_noscript=1}}
+}
 
