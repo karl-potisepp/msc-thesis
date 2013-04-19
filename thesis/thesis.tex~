@@ -76,13 +76,12 @@ The rest of the thesis is structured as follows. In the next sections I will des
 
 %Description in broad terms of what has been achieved with this thesis.
 
-Possible subtopics:
-\begin{itemize}
-	\item Microscope photo processing with bilateral filter - Datexim SAS (ENSICAEN)
-	\item de-noising satellite images (maybe)
-	\item Classification and metadata extraction from archaeological excavation data (TO BE ELABORATED)- Graeme Earl and Hembo Pagi (U of Southampton)
-	
-\end{itemize}
+%Possible subtopics:
+%\begin{itemize}
+%	\item Microscope photo processing with bilateral filter - Datexim SAS (ENSICAEN)
+%	\item de-noising satellite images (maybe)
+%	\item Classification and metadata extraction from archaeological excavation data (TO BE ELABORATED)- Graeme Earl and Hembo Pagi (U of Southampton)
+%\end{itemize}
 
 \section{Problem statement}
 
