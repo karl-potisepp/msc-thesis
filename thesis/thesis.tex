@@ -68,7 +68,7 @@ Along with the development of information technology, a constant stream of new a
 
 Due to the increasing prevalence of personal computers, smart televisions, smartphones, tablets and other devices carrying within themselves a full-fledged operating system such as Android, iOS or Windows 8, and due to the capability of these devices to act as producers of many kinds of content instead of being passive receivers (like radio and television, for example), there is a need to be able to process that content: photos need to be resized, cropped and cleaned up, and all the recorded sound and video shaped into a coherent whole through montage. These procedures however may not be something that is best achieved on the same device that was used for recording, because of limiting factors in processing power and storage space. However with the widespread availability of wireless internet or high-throughput cell phone networks, any of the aforementioned devices can simply upload their data to a more capable computer in order to do necessary processing. Because in many cases the recorded media will be consumed using a different device (for example, viewing holiday photos taken with your smartphone on your computer or smart TV), it can be argued that both the steps of transferring media from the recording device and processing it are inevitable anyway. Facebook and YouTube both provide a good example of this scenario: the user can upload their media in more or less in an unprocessed format and the frameworks take care of resizing and re-encoding the media so that it can be consumed by users. In this thesis I will explore whether using a computing cluster made out of virtual machines running open source software is a solution for doing this.
 
-The rest of the thesis is structured as follows. In the next sections I will describe in more detail the terminology and the problem at hand, give a short overview of previous work in this area. Chapter 2 will focus on describing the MapReduce model and the specifics of it's implementation in Apache Hadoop. In chapter 4 I will look at two different use cases where for applying MapReduce to large scale image data. The fifth and final chapter provides an overview of the results and outputs of this thesis. %TODO
+The rest of the thesis is structured as follows. In the next sections I will describe in more detail the terminology and the problem at hand, give a short overview of previous work in this area. Chapter 2 will focus on describing the MapReduce model and the specifics of it's implementation in Apache Hadoop. In chapter 4 I will look at two different practical use cases for applying MapReduce to large scale image data. The fifth and final chapter provides an overview of the results and outputs of this thesis. %TODO
 
 %Image processing, high resolution medical images, cheap quality cameras and abundance of photos. Also cheap hard drives which allow to store all this stuff. TODO explain :)
 
@@ -90,13 +90,13 @@ Before going too much into specifics, I will first specify the size of data I co
 
 Therefore, as the size of the data to be processed by one algorithm increases so that the computer no longer can hold all the information in memory, there is a significant decrease in processing speed. Similarly, if the data does not fit on the local hard drive, the processing speed drops due to having to wait for it to be sent in from another computer. While this can be alleviated somewhat by using buffering techniques, the general rule remains the same: it's best if the problem fits within memory, worse if it fits on the local hard drive and worst if the data has to be read across the network. Processing a large image is an example of such a problem.
 
-In this case we are dealing with a microscope image with a resolution of 86273 by 81025 pixels (roughly 6.99 gigapixels), where each pixel is made up of 3 values - red, green and blue. Assuming that each of these values is 1 byte (8 bits), the total memory consumption of storing this data in an uncompressed way can easily be calculated:
+In this case we are dealing with a microscope image with a resolution of 86273 by 81025 pixels (roughly 6.99 gigapixels), where each pixel is made up of 3 values - red, green and blue. Assuming that each of these values is stored as a 32-bit precision floating point number, the total memory consumption of storing this data in an uncompressed way can easily be calculated:
 
 \begin{center}
-$ 86273 * 81025 * 3 $ bytes $ = 19.531 $ gigabytes.
+$ 86273 * 81025 * 3 * 32$ bits $ = 78.12 $ gigabytes.
 \end{center}
 
-At the time of writing this document, most commodity computers do not have the required memory to even store this amount of data, and certainly not to perform any sort of processing with a sizable overhead, and even though there do exist specialised computers with enough memory for solving this issue, they are significantly more expensive to use and maintain. However, our aim is to find out whether it is possible  to process this kind of images using commodity computers in such a way that all the necessary data is stored within memory.
+At the time of writing this document, most commodity computers do not have the required memory to even store this amount of data, and certainly not to perform any sort of processing with an overhead dependent on the input size, and even though there do exist specialised computers with enough memory for solving this issue, they are significantly more expensive to acquire and maintain. However, our aim is to find out whether it is possible  to process this kind of images using commodity computers in such a way that all the necessary data is stored within memory.
 
 The second case involves a data set of 48469 images totaling 308 GiB (the average image here is a JPEG2000 file around 6.5MiB in size). While the size of the data set is small enough to fit on regular hard drives, and processing the images individually is not a problem, because the average size remains around 13 megapixels, thus requiring roughly only 40 MiB of memory, which is orders of magnitude less than was the case with the large image. In this case, the issue is not so much being able to fit the problem within memory, but rather about being able to process the data quickly enough. Here we depend on the processor - it does not matter how many more images you can fit inside the memory since generally the processor can only work on one image at a time. In reality this depends on how many cores the processor has and how well the algorithm can take advantage of that, but even with many cores, going through all of the data is too time-consuming. Therefore the problem to solve in this case is how to process this data set in an efficient way.
 
@@ -154,9 +154,24 @@ Hadoop is an open-source framework for distributed computing developed by the Ap
 HDFS is the underlying file system that Hadoop uses in order to store data meant to be processed by MapReduce. It is inspired by the Google File System (GFS) (TODO cite). There are two reasons why the file system comes into play when discussing image processing using Hadoop. Firstly the distributed nature of HDFS ensures that all input data is spread across the cluster's storage so that at least initially every worker can process data stored on it's local hard drive. Secondly, the configured block size somewhat restricts the storage of files - if a file is larger than the block size and can not easily be split, then all it's blocks will have to be stored in the same location, which in essence means that the advantages from having a small block size are lost.
 
 \section{Image processing}
-Description of what is meant by image processing within the scope of this thesis.
+
+In this thesis I will restrict my focus with regard to the field of image processing to two-dimensional color images. The following will not be a description of how images are acquired through the use of scanning or digital cameras, therefore it is assumed here that the reader is familiar with the notions of pixels, 2-dimensional coordinate notation and representing color using red, green and blue values. Therefore I will start with the following formal definition: I consider the image $I$ with width $x$ and height $y$ as a collection of pixels $p$, such that
+
+\begin{center}
+$I = \{ \, p_{i,j} | \, i \in [1,x], \, j \in [1,y] \, \}$, and
+
+$p_{i,j} = (r_{i,j}, g_{i,j}, b_{i,j})$,
+\end{center}
+where $r_{i,j}$, $g_{i,j}$ and $b_{i,j}$ are respectively the red, green and blue values of the pixel at $x$-coordinate $i$ and $y$-coordinate $j$. From this definition it is more or less straightforward to estimate the minimal memory requirements for storing an image with known dimensions when the programming language and data type for storing individual color values is also chosen. Since this thesis deals with Java, and image processing algorithms tend to prefer floating point values (which are 32 bits in Java) in the interests of precision, we can estimate the memory consumption $M$ of an image with dimensions $x$ and $y$ as follows:
+
+\begin{center} 
+$M = x * y * 3 * 32$ bits.
+\end{center}
+
+As image processing algorithms tend to operate on uncompressed images, using this sort of calculations provides a way of estimating the memory requirements from the time complexity of the processing tasks. Therefore the size of compressed the image file (for example JPEG or PNG) is only very loosely correlated with the time it takes to process that image, as the efficiency of compression algorithms depends on the information content of the image itself, whereas the estimation method described above only takes into account the spatial dimensions of the image.
+
 \subsection{ImageJ}
-ImageJ is a freely available image processing application written in Java and developed by the National Institutes of Health \cite{imagej}. It supports the processing and analysis of a wide variety of image types (8-, 16-, 32-bit RGB/black \& white images) and many commonly used image file formats such as PNG, TIFF and JPEG.
+For processing images while working on the practical part of this thesis, I used the ImageJ library. It is a freely available image processing application written in Java and developed by the National Institutes of Health \cite{imagej}. It supports the processing and analysis of a wide variety of image types (8-, 16-, 32-bit RGB/black \& white images) and many commonly used image file formats such as PNG, TIFF and JPEG.
 
 \section{Image processing and MapReduce}
 Description of different ways the MapReduce method has been used in conjunction with image processing libraries. Also some use cases.
@@ -169,15 +184,19 @@ Description of how the methodology established in this thesis was applied to rea
 
 \section{Analysis and processing of a large image}
 
-
+In this section I will describe a practical scenario of performing distributed processing on a large-resolution image.
 
 \subsection{Description of the data and use case}
+
+
+
 What sort of image, why does it need processing?
 
 
 
-\subsection{Bilateral Filter Algorithm}
+\subsection{Bilateral Filter}
 
+In this section I will focus on describing the general principle behind the bilateral filter and some of it's uses. 
 In order to somehow gauge the feasibility of using Hadoop MapReduce as a platform for image processing, I used the implementation of a bilateral filter by Chaudhury et al. (TODO cite).
 
 
