@@ -5,15 +5,18 @@
 \BOOKMARK [0][-]{chapter.2}{Background}{}% 5
 \BOOKMARK [1][-]{section.2.1}{Relevant work}{chapter.2}% 6
 \BOOKMARK [1][-]{section.2.2}{MapReduce}{chapter.2}% 7
-\BOOKMARK [2][-]{subsection.2.2.1}{Hadoop}{section.2.2}% 8
+\BOOKMARK [2][-]{subsection.2.2.1}{Apache Hadoop}{section.2.2}% 8
 \BOOKMARK [1][-]{section.2.3}{Image processing}{chapter.2}% 9
 \BOOKMARK [2][-]{subsection.2.3.1}{ImageJ}{section.2.3}% 10
 \BOOKMARK [1][-]{section.2.4}{Image processing and MapReduce}{chapter.2}% 11
 \BOOKMARK [0][-]{chapter.3}{Details of methodology}{}% 12
 \BOOKMARK [0][-]{chapter.4}{Use case}{}% 13
-\BOOKMARK [1][-]{section.4.1}{Analysis of a large image}{chapter.4}% 14
+\BOOKMARK [1][-]{section.4.1}{Analysis and processing of a large image}{chapter.4}% 14
 \BOOKMARK [2][-]{subsection.4.1.1}{Description of the data and use case}{section.4.1}% 15
-\BOOKMARK [2][-]{subsection.4.1.2}{Bilateral Filter Algorithm}{section.4.1}% 16
-\BOOKMARK [1][-]{section.4.2}{Analysis of many small images}{chapter.4}% 17
-\BOOKMARK [2][-]{subsection.4.2.1}{Description of the data and possible use case}{section.4.2}% 18
-\BOOKMARK [2][-]{subsection.4.2.2}{Problem statement}{section.4.2}% 19
+\BOOKMARK [2][-]{subsection.4.1.2}{Bilateral Filter}{section.4.1}% 16
+\BOOKMARK [2][-]{subsection.4.1.3}{Performance}{section.4.1}% 17
+\BOOKMARK [1][-]{section.4.2}{Analysis of many small images}{chapter.4}% 18
+\BOOKMARK [2][-]{subsection.4.2.1}{Description of the data and possible use case}{section.4.2}% 19
+\BOOKMARK [2][-]{subsection.4.2.2}{Problem statement}{section.4.2}% 20
+\BOOKMARK [2][-]{subsection.4.2.3}{Performance}{section.4.2}% 21
+\BOOKMARK [0][-]{chapter.5}{Overview and discussion}{}% 22

@@ -162,6 +162,8 @@ TODO replication, what happens to a file when it is bigger than 1 block size
 
 TODO how to write a job, what to take into account (with regard to images), what are the restrictions w/r/t communication, storage
 
+TODO what is a MapReduce job?
+
 \section{Image processing}
 
 In this thesis, I will restrict my focus with regard to the field of image processing to two-dimensional color images. The following will not be a description of how images are acquired through the use of scanning or digital cameras, therefore it is assumed here that the reader is familiar with the notions of pixels, 2-dimensional coordinate notation and representing color using red, green and blue values. Therefore I will start with the following formal definition: I consider the image $I$ with width $x$ and height $y$ as a collection of pixels $p$, such that
@@ -189,6 +191,15 @@ For processing images while working on the practical part of this thesis, I used
 TODO how was imagej used in the work
 
 \section{Image processing and MapReduce}
+
+It is known that the MapReduce method places some restrictions on iterative parallel processing algorithms that require communication between computing nodes. Since the only step in a MapReduce job that contains any communication takes place when the mappers send data to reducers, all the algorithms whose parallelised implementations require more than one communication phase, require more than one MR job to complete. Due to the overhead involved in starting jobs, this can lead to a huge increase in computation time, particularly for algorithms that require many iterations to complete, and therefore makes MapReduce less than ideal for performing this sort of processing.
+
+Fortunately most image processing tasks involve doing many independent small-scale calculations in parallel. A good example of this is Gaussian blurring (smoothing), which transforms an input image by calculating a new value for every pixel based on it's neighbouring pixels. This procedure can be trivially parallelised since each calculation only requires the values of a small group of pixels in order to calculate the new value of the pixel in focus. In this case, the procedure requires only one step, so there is no need to worry about accommodating to iterations.
+
+Things get a bit more complicated once we attempt to use some sort edge-detection heuristic in order to smooth only those regions in the image which are homogenous in colour, and preserve sharpness in the contours. A common approach here is to iteratively smooth the image, re-calculating the heuristic at every step. 
+
+TODO explain parallelisation by way of splitting the image into blocks, how to figure out the best block size analytically (take into account processing time, HDFS block size), overlap size etc.
+
 Description of different ways the MapReduce method has been used in conjunction with image processing libraries. Also some use cases.
 
 \chapter{Details of methodology}
@@ -227,7 +238,7 @@ One of the main issues with regard to measuring the performance of the FBF algor
 
 \subsection{Description of the data and possible use case}
 
-The data set consists of 40326 JPEG encoded images (totaling at about 308GB) taken across the span of 9 years at the Portus archaeological excavation site near Rome, Italy. It is somewhat structured and some images are also tagged with meta-data using folder structures. However the structuring is incomplete, evidenced by duplicates and missing meta-data (which currently has to be manually added). The motivation behind applying distributed image processing on this data set is to find out whether it is possible to speed up the structuring process and extract some meta-data with minimal human interference.
+The data set consists of 40326 JPEG encoded images (totalling at about 308GB) taken across the span of 9 years at the Portus archaeological excavation site near Rome, Italy. It is somewhat structured and some images are also tagged with meta-data using folder structures. However the structuring is incomplete, evidenced by duplicates and missing meta-data (which currently has to be manually added). The motivation behind applying distributed image processing on this data set is to find out whether it is possible to speed up the structuring process and extract some meta-data with minimal human interference.
 
 The downside of using this data set to illustrate the analysis of many small images using MapReduce is that since there is no ideally structured version of it to compare to, all efficiency statistics will be purely subjective. However the intent of this work is not to describe an effective meta-data extraction method, but rather analyse the suitability of MapReduce for this sort of task and discuss the issues (both solved and unsolved) encountered.
 
