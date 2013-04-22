@@ -201,8 +201,8 @@ keywords = "Collective communication"
 @ONLINE{imagej,
  author = {Rasband, Wayne},
  title = {ImageJ - Image Processing And Analysis In Java},
- month = {December},
- year = {2010},
- url = {\url{http://www.facebook.com/notes/facebook-engineering/looking-at-the-code-behind-our-three-uses-of-apache-hadoop/468211193919?_fb_noscript=1}}
+ month = {April},
+ year = {2013},
+ url = {\url{http://rsb.info.nih.gov/ij/index.html}}
 }
 
