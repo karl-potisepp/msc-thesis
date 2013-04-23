@@ -1,0 +1,103 @@
+\begin{thebibliography}{10}
+
+\bibitem{citeulike:2631015}
+{\em {Clustering Billions of Images with Large Scale Nearest Neighbor Search}},
+  2007.
+
+\bibitem{aurich1995non}
+Volker Aurich and J{\"o}rg Weule.
+\newblock Non-linear gaussian filters performing edge preserving diffusion.
+\newblock In {\em Mustererkennung 1995}, pages 538--545. Springer, 1995.
+
+\bibitem{Dean:2008:MSD:1327452.1327492}
+Jeffrey Dean and Sanjay Ghemawat.
+\newblock Mapreduce: simplified data processing on large clusters.
+\newblock {\em Commun. ACM}, 51(1):107--113, January 2008.
+
+\bibitem{website:facebook_namenode_improvements}
+Borthakur Dhruba.
+\newblock Looking at the code behind our three uses of apache hadoop, December
+  2010.
+
+\bibitem{website:amazon_ec2}
+Borthakur Dhruba.
+\newblock Amazon elastic compute cloud (amazon ec2), October 2012.
+
+\bibitem{trease08}
+R.~Farber S.~Elbert H.~Trease, D.~Fraser.
+\newblock Using transaction based parallel computing to solve image processing
+  and computational physics problems.
+
+\bibitem{Hawick:2003:DFP:958021.958024}
+Kenneth~A. Hawick, P.~D. Coddington, and H.~A. James.
+\newblock Distributed frameworks and parallel algorithms for processing
+  large-scale geographic data.
+\newblock {\em Parallel Comput.}, 29(10):1297--1333, October 2003.
+
+\bibitem{Lv:2010:PKC:1927661.1927687}
+Zhenhua Lv, Yingjie Hu, Haidong Zhong, Jianping Wu, Bo~Li, and Hui Zhao.
+\newblock Parallel k-means clustering of remote sensing images based on
+  mapreduce.
+\newblock In {\em Proceedings of the 2010 international conference on Web
+  information systems and mining}, WISM'10, pages 162--170, Berlin, Heidelberg,
+  2010. Springer-Verlag.
+
+\bibitem{bf_course}
+Sylvain Paris, Pierre Kornprobst, Jack Tumblin, and Fredo Durand.
+\newblock A gentle introduction to bilateral filtering and its applications,
+  April 2013.
+
+\bibitem{Pereira:2010:ADH:1844768.1845374}
+Rafael Pereira, Marcello Azambuja, Karin Breitman, and Markus Endler.
+\newblock An architecture for distributed high performance video processing in
+  the cloud.
+\newblock In {\em Proceedings of the 2010 IEEE 3rd International Conference on
+  Cloud Computing}, CLOUD '10, pages 482--489, Washington, DC, USA, 2010. IEEE
+  Computer Society.
+
+\bibitem{5446706}
+M.W. Powell, R.A. Rossi, and K.~Shams.
+\newblock A scalable image processing framework for gigapixel mars and other
+  celestial body images.
+\newblock In {\em Aerospace Conference, 2010 IEEE}, pages 1 --11, march 2010.
+
+\bibitem{imagej}
+Wayne Rasband.
+\newblock Imagej - image processing and analysis in java, April 2013.
+
+\bibitem{smith1997susan}
+Stephen~M Smith and J~Michael Brady.
+\newblock Susan—a new approach to low level image processing.
+\newblock {\em International journal of computer vision}, 23(1):45--78, 1997.
+
+\bibitem{tomasi1998bilateral}
+Carlo Tomasi and Roberto Manduchi.
+\newblock Bilateral filtering for gray and color images.
+\newblock In {\em Computer Vision, 1998. Sixth International Conference on},
+  pages 839--846. IEEE, 1998.
+
+\bibitem{wang2011ult}
+Y.~Wang, D.~McCleary, C.~Wang, P.~Kelly, J.~James, D.A. Fennell, and P.W.
+  Hamilton.
+\newblock Ultra-fast processing of gigapixel tissue microarray images using
+  high performance computing.
+\newblock {\em Cell Oncol (Dordr)}, 34(5):495--507, 2011.
+
+\bibitem{White:2010:WCV:1814245.1814254}
+Brandyn White, Tom Yeh, Jimmy Lin, and Larry Davis.
+\newblock Web-scale computer vision using mapreduce for multimedia data mining.
+\newblock In {\em Proceedings of the Tenth International Workshop on Multimedia
+  Data Mining}, MDMKDD '10, pages 9:1--9:10, New York, NY, USA, 2010. ACM.
+
+\bibitem{youtube_stats}
+YouTube.
+\newblock Statistics - youtube, April 2013.
+
+\bibitem{Zhang:2009:CSS:2127968.2128002}
+Chen Zhang, Hans De~Sterck, Ashraf Aboulnaga, Haig Djambazian, and Rob Sladek.
+\newblock Case study of scientific data processing on a cloud using hadoop.
+\newblock In {\em Proceedings of the 23rd international conference on High
+  Performance Computing Systems and Applications}, HPCS'09, pages 400--415,
+  Berlin, Heidelberg, 2010. Springer-Verlag.
+
+\end{thebibliography}

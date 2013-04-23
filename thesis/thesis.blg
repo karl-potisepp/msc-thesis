@@ -1,0 +1,64 @@
+This is BibTeX, Version 0.99d (TeX Live 2012)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: thesis.aux
+The style file: plain.bst
+Database file #1: bibliography.bib
+Warning--entry type for "website:facebook_namenode_improvements" isn't style-file defined
+--line 122 of file bibliography.bib
+Warning--entry type for "website:amazon_ec2" isn't style-file defined
+--line 130 of file bibliography.bib
+Warning--entry type for "imagej" isn't style-file defined
+--line 201 of file bibliography.bib
+Warning--entry type for "youtube_stats" isn't style-file defined
+--line 209 of file bibliography.bib
+Warning--entry type for "bf_course" isn't style-file defined
+--line 246 of file bibliography.bib
+Warning--to sort, need editor, organization, or key in citeulike:2631015
+Too many commas in name 1 of "H. Trease, D. Fraser, R. Farber, S. Elbert" for entry trease08
+while executing---line 1049 of file plain.bst
+Too many commas in name 1 of "H. Trease, D. Fraser, R. Farber, S. Elbert" for entry trease08
+while executing---line 1090 of file plain.bst
+Warning--empty journal in trease08
+Warning--empty year in trease08
+You've used 18 entries,
+            2118 wiz_defined-function locations,
+            611 strings with 7501 characters,
+and the built_in function-call counts, 6571 in all, are:
+= -- 654
+> -- 292
+< -- 7
++ -- 119
+- -- 98
+* -- 442
+:= -- 1020
+add.period$ -- 52
+call.type$ -- 18
+change.case$ -- 102
+chr.to.int$ -- 0
+cite$ -- 21
+duplicate$ -- 260
+empty$ -- 536
+format.name$ -- 98
+if$ -- 1433
+int.to.chr$ -- 0
+int.to.str$ -- 18
+missing$ -- 12
+newline$ -- 85
+num.names$ -- 34
+pop$ -- 136
+preamble$ -- 1
+purify$ -- 85
+quote$ -- 0
+skip$ -- 212
+stack$ -- 0
+substring$ -- 404
+swap$ -- 80
+text.length$ -- 7
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 71
+warning$ -- 3
+while$ -- 61
+width$ -- 20
+write$ -- 190
+(There were 2 error messages)

@@ -80,13 +80,13 @@ The rest of this work is structured as follows. In the next sections I will desc
 
 %Description in broad terms of what has been achieved with this thesis.
 
-Possible subtopics:
-\begin{itemize}
-	\item Microscope photo processing with bilateral filter - Datexim SAS (ENSICAEN)
-	\item de-noising satellite images (maybe)
-	\item Classification and metadata extraction from archaeological excavation data (TO BE ELABORATED)- Graeme Earl and Hembo Pagi (U of Southampton)
+%Possible subtopics:
+%\begin{itemize}
+%	\item Microscope photo processing with bilateral filter - Datexim SAS (ENSICAEN)
+%	\item de-noising satellite images (maybe)
+%	\item Classification and metadata extraction from archaeological excavation data (TO BE ELABORATED)- Graeme Earl and Hembo Pagi (U of Southampton)
 	
-\end{itemize}
+%\end{itemize}
 
 \section{Problem statement}
 
@@ -102,15 +102,21 @@ $ 86273 * 81025 * 3 * 32$ bits $ = 78.12 $ gigabytes.
 
 At the time of writing this document, most commodity computers do not have the required memory to even store this amount of data, and certainly not to perform any sort of processing with an overhead dependent on the input size, and even though there do exist specialised computers with enough memory for solving this issue, they are significantly more expensive to acquire and maintain. However, our aim is to find out whether it is possible  to process this kind of images using commodity computers in such a way that all the necessary data is stored within memory.
 
-The second case involves a data set of 48469 images totaling 308 GiB (the average image here is a JPEG2000 file around 6.5MiB in size). While the size of the data set is small enough to fit on regular hard drives, and processing the images individually is not a problem, because the average size remains around 13 megapixels, thus requiring roughly only 40 MiB of memory, which is orders of magnitude less than was the case with the large image. In this case, the issue is not so much being able to fit the problem within memory, but rather about being able to process the data quickly enough. Here we depend on the processor - it does not matter how many more images you can fit inside the memory since generally the processor can only work on one image at a time. In reality, this depends on how many cores the processor has and how well the algorithm can take advantage of that, but even with many cores, going through all of the data can be very time-consuming. Therefore, the problem to solve in this case is how to process this data set in an efficient way.
+The second case involves a data set of 48469 images totalling 308 GiB (the average image here is a JPEG2000 file around 6.5MiB in size). While the size of the data set is small enough to fit on regular hard drives, and processing the images individually is not a problem, because the average size remains around 13 megapixels, thus requiring roughly only 40 MiB of memory, which is orders of magnitude less than was the case with the large image. In this case, the issue is not so much being able to fit the problem within memory, but rather about being able to process the data quickly enough. Here we depend on the processor - it does not matter how many more images you can fit inside the memory since generally the processor can only work on one image at a time. In reality, this depends on how many cores the processor has and how well the algorithm can take advantage of that, but even with many cores, going through all of the data can be very time-consuming. Therefore, the problem to solve in this case is how to process this data set in an efficient way.
 
 In this section I have established that processing the aforementioned classes of large images or large data sets of regular images can not be done on a single personal computer, because in the first case, they do not fit into memory, and in the second case one computer can not process them fast enough. Neither of these issues can be expected to be solved by advances in computing power, because CPUs are already reaching their theoretical physical limitations  and the scale of data is increasing faster than the processing capabilities of single commodity computers. 
 
-A solution for these problems is turning towards distributed computing, where limitations of a single computer are dealt with by combining the resources of many computers to perform one large task. While this approach is not new - supercomputers and computing clusters have existed for many years already - it is only recently that techniques of using commodity computers for distributed processing have gained popularity. Combining this with the ability to rent virtual machines from cloud providers such as Amazon and Microsoft it is easy to see how solving large scale processing tasks is now feasible for those who do not have access to a supercomputer nor the resources to build or maintain one.
+A solution for these problems is turning towards distributed computing, where limitations of a single computer are overcome by combining the resources of many computers to perform one large task. While this approach is not new - supercomputers and computing clusters have existed for many years already - it is only recently that techniques of using commodity computers for distributed processing have gained popularity. In the following I will explain more thoroughly how these technologies could be used to solve image processing tasks.
 
-\subsection{Image processing}
+\subsection{Distributed image processing}
 
-Lots of images on the internet, youtube, produced by high definition cameras. Realtime processing and feature extraction, denoising. Focus on 2-dimensional color images, subfocus on one large image and a dataset of many small images with regard to MapReduce.
+In order to allow for more involved discussion about distributed image processing, I will now restrict the problem space to 2-dimensional colour images. This may not seem like much of a change at first, as it is probably the most common definition for an image, yet it allows us to disregard issues related to videos, 3-dimensional meshes and other types of image data that is also studied in the field of image processing. Moving on, I will further divide image processing problems into two classes: local and non-local.
+
+Local, with regard to image processing, denotes that the computation is performed only on a small fixed subset of the image at a time: typically this means that the value of a pixel in focus is re-calculated using the values of it's neighbouring pixels. It is easy to see how problems like this can be parallelised by virtue of splitting the image into parts, performing the processing, and later putting it back together. Gaussian blurring, which I will briefly describe during the course of this work, is an example of a local processing algorithm. Contrary to local, non-local problems involve larger parts of the image. A good example of non-local processing is object recognition. For example, in order for a trained character recognition algorithm to be able to recognise the letter "A" from an image, it's search window needs to be big enough to encompass the whole letter. The solution of splitting the image into parts to allow for parallel processing now requires special attention in order to avoid splitting objects into unrecognisable fragments, and in the worst case could be entirely inapplicable if the object to be classified takes up the whole image.
+
+TODO image for illustrating local and non-local?
+
+%Lots of images on the internet, youtube, produced by high definition cameras. Realtime processing and feature extraction, denoising. Focus on 2-dimensional color images, subfocus on one large image and a dataset of many small images with regard to MapReduce.
 
 \subsection{Why MapReduce?}
 
