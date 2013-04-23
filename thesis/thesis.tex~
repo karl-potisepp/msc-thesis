@@ -143,10 +143,9 @@ In Distributed frameworks and parallel algorithms for processing large-scale geo
 
 A Scalable Image Processing Framework for gigapixel Mars and other celestial body  images \cite{5446706} by Powell et al. describes the way NASA handles processing of celestial images captured by the Mars orbiter and rovers. Clear and concise descriptions are provided for the segmentation of gigapixel images into tiles, how these tiles are processed, and how the image processing framework handles scaling and works with distributed processing. The authors used the Kakadu JPEG2000 encoder and decoder along with the Kakadu Java Native Interface to develop their own processing suite. The software is proprietary and requires the purchase of a license to use.
 
-Ultra-fast processing of gigapixel Tissue MicroArray images using high performance computing \cite{wang2011ult}: This article talks about speeding up the analysis of Tissue MicroArray images by substituting human expert analysis for automated processing algorithms. While the images sizes processed were measured in gigapixels, the content of the image (scans of tissue microarrays) was easily segmented and there was no need to focus on being able to analyse all of the image at once. Furthermore, the work was all done on a specially built grid high performance computing platform with shared memory and storage, whereas this thesis is focused on performing processing on a Apache Hadoop cluster.
+Ultra-fast processing of gigapixel Tissue MicroArray images using high performance computing \cite{wang2011ult} by Wang et al. talks about speeding up the analysis of Tissue MicroArray images by substituting human expert analysis for automated processing algorithms. While the images sizes processed were measured in gigapixels, the content of the image (scans of tissue microarrays) was easily segmented and there was no need to focus on being able to analyse all of the image at once. Furthermore, the work was all done on a specially built grid high performance computing platform with shared memory and storage, whereas this thesis is focused on performing processing on a Apache Hadoop cluster.
 
-
-As evidenced by the summaries listed above, a lot of work has already been done, however the question whether (and how well) Hadoop is suited for large scale image processing tasks still remains, because as evidenced by this brief overview of relevant work, there are only a few cases where image processing has been used in conjunction with MapReduce. 
+While the above shows that there has been a lot of work in this area the question remains whether (and how well) Hadoop is suited for large scale image processing tasks, because as evidenced by this brief overview, there are only a few cases where image processing has been done with MapReduce. 
 
 %In this chapter I will provide a thorough description of all technologies and methodologies that are important with regards to this work. I will describe the operating philosophy of the MapReduce model and the capabilities and limitations of it's most popular freely non-proprietary implementation - Hadoop. Also, the different image processing and Java-C++ technologies used while working on this thesis, such as the CImg library and the Java Native Interface, will be elaborated.
 
@@ -209,8 +208,8 @@ TODO explain parallelisation by way of splitting the image into blocks, how to f
 
 Description of different ways the MapReduce method has been used in conjunction with image processing libraries. Also some use cases.
 
-\chapter{Details of methodology}
-Descriptions on what was implemented, how it was implemented, problems encountered, and what has been done to solve these problems. If there were unsolvable problems, then how do these limit the applicability of the methodology in the real world and how to work around these limitations.
+%\chapter{Details of methodology}
+%Descriptions on what was implemented, how it was implemented, problems encountered, and what has been done to solve these problems. If there were unsolvable problems, then how do these limit the applicability of the methodology in the real world and how to work around these limitations.
 
 \chapter{Use case}
 Description of how the methodology established in this thesis was applied to real-world problems.
@@ -229,13 +228,83 @@ What sort of image, why does it need processing?
 
 \subsection{Bilateral Filter}
 
-In this section I will focus on describing the general principle behind the bilateral filter and some of it's uses. 
-In order to somehow gauge the feasibility of using Hadoop MapReduce as a platform for image processing, I used the implementation of a bilateral filter by Chaudhury et al. (TODO cite).
+In the context of this thesis, I will refer to the bilateral filter as a smoothing filter that attempts to preserve edges while reducing noise in the image. It has previously been described by Aurich and Weule, Tomasi and Manduchi, and Smith and Brady \cite{aurich1995non,smith1997susan,tomasi1998bilateral}. This section will describe both the naive and optimised implementations with regard to performance and resource requirements and provide a brief overview of it's common uses. The following descriptions are adapted from course notes by Paris et al. \cite{bf_course}. In the interests of simplicity and also due to differences between real-world implementations of these algorithms with regard to processing images with more than one color channel, the formulations here will apply only to images with a single number as the pixel value (i.e. monochrome images).
 
+The bilateral filter is an improvement of the Gaussian filter with regard to edge-preservation capability. The following describes how the Gaussian filter is applied to an image:
+
+\begin{center}
+\begin{algorithm}[h]
+	\KwData{$I$ - input image, $O$ - output image, $\sigma$ - filter range, $h$ - height of the input image, $w$ - width of the input image}
+	\For{$x = 1, 2, ... w$}{
+		\For{$y = 1, 2, ... h$}{
+			$O(x,y) = 0$
+
+			\For{$x_\sigma = x-\sigma ... x+\sigma$}{
+				\For{$y_\sigma = y-\sigma ... y+\sigma$}{
+					$O(x,y) += I(x_\sigma, y_\sigma)*G_\sigma(\| (x_\sigma, y_\sigma)-(x, y) \|)$
+				}
+			}
+		}
+	}
+\end{algorithm}
+\end{center}
+
+Here, $I(x,y)$ and $O(x,y)$ signify pixels of input and output images at width and heigth coordinates $x$ and $y$ respectively, $\| (x_\sigma, y_\sigma)-(x, y) \|$ represents the distance between the pixel being processed and the pixel at $(x_\sigma, y_\sigma)$. $G_\sigma(x)$ is the Gaussian function
+
+\begin{center}
+$G_\sigma(x) = \frac{1}{2\pi\sigma^2} \exp(-\frac{x^2}{2\sigma^2})$.
+\end{center}
+
+TODO verify if the above is correct.
+
+Essentially, what happens to each pixel during the course of this algorithm, is that their values are re-calculated as a weighted sum of their neighboring pixels, and $\sigma$ specifies the range of this neighborhood. This is best visualised by thinking of pixels as cells and the image as the table - the $\sigma$-neighborhood of pixel $I(x,y)$ then is the group of cells extending $\sigma$ rows above and below, and $\sigma$ columns before and after the cell in focus (see figure \ref{fig_gaussian_blur}). Due to the characteristics of Gaussian distribution, as the distance $\| (x_\sigma, y_\sigma)-(x, y) \|$ between pixels increases, the weight decreases. This means that pixels further away contribute less to the new value of the pixel currently in focus, and pixels outside the $\sigma$-neighborhood of the pixel do not affect it's value at all. It is important to note here that the actual values of the pixels do not affect the calculations of the weights at all, and the $G_\sigma(x)$ can be pre-calculated as a matrix of weights, bringing the time complexity of the algorithm to $O(n)$, where $n$ is the amount of pixels in the image.
+
+\begin{center}
+\begin{figure}[h]
+\caption{TODO pretty picture of gaussian blur}
+\label{fig_gaussian_blur}
+\end{figure}
+\end{center}
 
 \subsubsection{Naive bilateral filter algorithm}
 
+The improvement introduced to the Gaussian filter by the bilateral filter is an additional weight term which takes into account the values of the $\sigma$-neighborhood of the pixel. This leads us to the following formulation:
+
+\begin{center}
+\begin{algorithm}[H]
+	\KwData{$I$ - input image, $O$ - output image, $\sigma$ - filter range, $h$ - height of the input image, $w$ - width of the input image}
+	\For{$x = 1, 2, ... w$}{
+		\For{$y = 1, 2, ... h$}{
+			$O(x,y) = 0$
+
+			$norm = 0$
+			
+			\For{$x_\sigma = x-\sigma ... x+\sigma$}{
+				\For{$y_\sigma = y-\sigma ... y+\sigma$}{
+					$norm += G_{\sigma_s}(\| (x_\sigma, y_\sigma)-(x, y) \|)*G_{\sigma_r}(I(x_\sigma, y_\sigma)-I(x, y))$
+
+					$O(x,y) += I(x_\sigma, y_\sigma)*G_{\sigma_s}(\| (x_\sigma, y_\sigma)-(x, y) \|)*G_{\sigma_r}(I(x_\sigma, y_\sigma)-I(x, y))$
+				}
+			}
+			$O(x,y) = \frac{O(x,y)}{norm}$
+		}
+	}
+\end{algorithm}
+\end{center}
+
+\begin{center}
+\begin{figure}[h]
+\caption{TODO pretty picture of bilateral filter}
+\label{fig_gaussian_blur}
+\end{figure}
+\end{center}
+
+\subsubsection{Fast O(1) bilateral filter algorithm}
+
+In order to somehow gauge the feasibility of using Hadoop MapReduce as a platform for image processing, I used the implementation of a bilateral filter by Chaudhury et al. (TODO cite).
 Description of the bilateral filter algorithm, it's applications and details about the implementation used for benchmarking.
+
+\subsubsection{}
 
 \subsection{Performance}
 
