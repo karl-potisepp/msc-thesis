@@ -116,16 +116,17 @@ Generally speaking, the MapReduce parallel computing model follows what can be c
 
 Local, with regard to image processing, denotes that the computation is performed as a series of small calculations on fixed subsets of the image: typically this means that the value of a pixel in focus is re-calculated using the values of it's neighbouring pixels. It is easy to see how problems like this can be parallelised by virtue of splitting the image into parts, performing the processing, and later putting it back together. Gaussian blurring, which I will briefly describe during the course of this work, is an example of a local processing algorithm. Contrary to local, non-local problems involve larger parts of the image. A good example of non-local processing is object recognition. For example, in order for a trained character recognition algorithm to be able to recognise the letter "A" from an image, it's search window needs to be big enough to encompass the whole letter. The solution of splitting the image into parts to allow for parallel processing now requires special attention in order to avoid splitting objects into unrecognisable fragments, and in the worst case could be entirely inapplicable if the object to be classified takes up the whole image. 
 
-The distinction between iterative and non-iterative algorithms is simpler: a non-iterative algorithm only processes the image a constant number of times to achieve the desired effect, whereas an iterative algorithm requires multiple passes. 
+The distinction between iterative and non-iterative algorithms is simpler: a non-iterative algorithm only processes the image a constant number of times to achieve the desired effect, whereas an iterative algorithm requires multiple passes, and often the output image of a previous pass becomes the input of the next pass. Observing the data requirements for what simply seems an iterative local algorithm, it is easy to see that even though the resulting values for pixels in the first pass only depend on their close neighborhood, from the second iteration on, those neighboring pixels have had their values adjusted according to their neighborhoods, which in turn are changed according to their neighbors and so on. While the extent of this influence depends on the algorithm in question, the algorithm itself is - strictly speaking - non-local.
 
+TODO image for illustrating local and non-local
 
-Having established these four classes of image processing problems, we can now look back at the example cases brought up previously and see what issues would arise if we attempted to parallelise local and non-local algorithms on these images.
+Therefore, we can establish four classes of image processing problems: local, non-local, iterative local and iterative non-local. We can now look back at the example cases brought up previously and see what issues would arise if we attempted to parallelise local and non-local algorithms on these images.
 
 
 
 In the first case, it immediately becomes obvious that parallelising a non-local type of algorithm is going to be a non-trivial task, as we lack even the ability to store it in memory. Even when assuming that the algorithm can continue to function if the input image is split to pieces, if communication is also required between the computers working on separate pieces, then there is a good chance that network speed will become a bottleneck and slow down the computation.
 
-TODO image for illustrating local and non-local?
+
 
 %Lots of images on the internet, youtube, produced by high definition cameras. Realtime processing and feature extraction, denoising. Focus on 2-dimensional color images, subfocus on one large image and a dataset of many small images with regard to MapReduce.
 
