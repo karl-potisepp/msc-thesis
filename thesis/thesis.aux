@@ -26,15 +26,17 @@
 \citation{youtube_stats}
 \@writefile{toc}{\contentsline {section}{\numberline {1.1}Problem statement}{5}{section.1.1}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.1.1}Distributed image processing}{6}{subsection.1.1.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.2}Why MapReduce?}{7}{subsection.1.1.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.1}{\ignorespaces Differences between local (left) and non-local (right) processing. Red represents the pixel in focus, the X-s represent the pixels whose data the algorithm needs to access.}}{8}{figure.1.1}}
+\newlabel{fig_local_nonlocal}{{1.1}{8}{Differences between local (left) and non-local (right) processing. Red represents the pixel in focus, the X-s represent the pixels whose data the algorithm needs to access}{figure.1.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.2}Why use MapReduce?}{8}{subsection.1.1.2}}
 \@writefile{loa}{\addvspace {10\p@ }}
 \citation{White:2010:WCV:1814245.1814254}
 \citation{Pereira:2010:ADH:1844768.1845374}
 \citation{website:facebook_namenode_improvements}
-\@writefile{toc}{\contentsline {chapter}{\numberline {2}Background}{8}{chapter.2}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {2}Background}{10}{chapter.2}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {2.1}Relevant work}{8}{section.2.1}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}Relevant work}{10}{section.2.1}}
 \citation{citeulike:2631015}
 \citation{Lv:2010:PKC:1927661.1927687}
 \citation{Zhang:2009:CSS:2127968.2128002}
@@ -44,38 +46,38 @@
 \citation{5446706}
 \citation{wang2011ult}
 \citation{Dean:2008:MSD:1327452.1327492}
-\@writefile{toc}{\contentsline {section}{\numberline {2.2}MapReduce}{11}{section.2.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Apache Hadoop}{11}{subsection.2.2.1}}
-\@writefile{toc}{\contentsline {subsubsection}{Hadoop Distributed File System (HDFS)}{11}{section*.2}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.3}Running a MapReduce job}{12}{section.2.3}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.4}Image processing}{12}{section.2.4}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}MapReduce}{13}{section.2.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Apache Hadoop}{13}{subsection.2.2.1}}
+\@writefile{toc}{\contentsline {subsubsection}{Hadoop Distributed File System (HDFS)}{14}{section*.2}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Running a MapReduce job}{14}{section.2.3}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.4}Image processing}{14}{section.2.4}}
 \citation{imagej}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.1}Common applications}{13}{subsection.2.4.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.2}ImageJ}{13}{subsection.2.4.2}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.5}Image processing and MapReduce}{13}{section.2.5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.1}Common applications}{15}{subsection.2.4.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.2}ImageJ}{15}{subsection.2.4.2}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.5}Image processing and MapReduce}{15}{section.2.5}}
 \@writefile{loa}{\addvspace {10\p@ }}
 \citation{aurich1995non,smith1997susan,tomasi1998bilateral}
 \citation{bf_course}
-\@writefile{toc}{\contentsline {chapter}{\numberline {3}Use case}{15}{chapter.3}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}Use case}{17}{chapter.3}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {3.1}Analysis and processing of a large image}{15}{section.3.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.1}Description of the data and use case}{15}{subsection.3.1.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.2}Bilateral Filter}{15}{subsection.3.1.2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces TODO pretty picture of gaussian blur}}{16}{figure.3.1}}
-\newlabel{fig_gaussian_blur}{{3.1}{16}{TODO pretty picture of gaussian blur\relax }{figure.3.1}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Naive bilateral filter algorithm}{17}{section*.3}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.2}{\ignorespaces TODO pretty picture of bilateral filter}}{17}{figure.3.2}}
-\newlabel{fig_gaussian_blur}{{3.2}{17}{TODO pretty picture of bilateral filter\relax }{figure.3.2}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Fast O(1) bilateral filter algorithm}{17}{section*.4}}
-\@writefile{toc}{\contentsline {subsubsection}{}{18}{section*.5}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.3}Performance}{18}{subsection.3.1.3}}
-\@writefile{toc}{\contentsline {section}{\numberline {3.2}Analysis of many small images}{18}{section.3.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}Description of the data and possible use case}{18}{subsection.3.2.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}Problem statement}{18}{subsection.3.2.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}Performance}{19}{subsection.3.2.3}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}Analysis and processing of a large image}{17}{section.3.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.1}Description of the data and use case}{17}{subsection.3.1.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.2}Bilateral Filter}{17}{subsection.3.1.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces TODO pretty picture of gaussian blur}}{18}{figure.3.1}}
+\newlabel{fig_gaussian_blur}{{3.1}{18}{TODO pretty picture of gaussian blur\relax }{figure.3.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Naive bilateral filter algorithm}{19}{section*.3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.2}{\ignorespaces TODO pretty picture of bilateral filter}}{19}{figure.3.2}}
+\newlabel{fig_gaussian_blur}{{3.2}{19}{TODO pretty picture of bilateral filter\relax }{figure.3.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Fast O(1) bilateral filter algorithm}{19}{section*.4}}
+\@writefile{toc}{\contentsline {subsubsection}{}{20}{section*.5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.3}Performance}{20}{subsection.3.1.3}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}Analysis of many small images}{20}{section.3.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}Description of the data and possible use case}{20}{subsection.3.2.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}Problem statement}{20}{subsection.3.2.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}Performance}{21}{subsection.3.2.3}}
 \@writefile{loa}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {chapter}{\numberline {4}Overview and discussion}{20}{chapter.4}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}Overview and discussion}{22}{chapter.4}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \bibstyle{plain}
@@ -90,7 +92,7 @@
 \bibcite{Lv:2010:PKC:1927661.1927687}{8}
 \bibcite{bf_course}{9}
 \bibcite{Pereira:2010:ADH:1844768.1845374}{10}
-\@writefile{toc}{\contentsline {chapter}{Bibliography}{21}{chapter.4}}
+\@writefile{toc}{\contentsline {chapter}{Bibliography}{23}{chapter.4}}
 \@writefile{loa}{\addvspace {10\p@ }}
 \bibcite{5446706}{11}
 \bibcite{imagej}{12}
