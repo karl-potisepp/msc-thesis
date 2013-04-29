@@ -11,3 +11,7 @@ code/.classpath
 
 metadata_extractor/bin/*
 metadata_extractor/.classpath
+
+thesis/thesis.log
+
+thesis/thesis.synctex.gz
