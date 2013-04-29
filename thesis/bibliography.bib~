@@ -243,3 +243,11 @@ keywords = "Collective communication"
   publisher={Springer}
 }
 
+@ONLINE{bf_course,
+ author = {Paris, Sylvain and Kornprobst, Pierre and Tumblin, Jack and Durand, Fredo},
+ title = {A Gentle Introduction to Bilateral Filtering and its Applications},
+ month = {April},
+ year = {2013},
+ url = {\url{http://people.csail.mit.edu/sparis/bf_course/}}
+}
+

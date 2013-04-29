@@ -5,6 +5,9 @@ cd out
 cp ../bibliography.bib .
 cp ../ut_thesis.sty .
 cp ../ut_thesis_utf8.sty .
+cp ../*pdf .
+cp ../*png .
+cp ../*eps .
 latex ../thesis.tex
 bibtex thesis.aux
 latex ../thesis.tex
