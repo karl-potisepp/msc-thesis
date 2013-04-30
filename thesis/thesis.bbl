@@ -70,6 +70,11 @@ Stephen~M Smith and J~Michael Brady.
 \newblock Susan—a new approach to low level image processing.
 \newblock {\em International journal of computer vision}, 23(1):45--78, 1997.
 
+\bibitem{srirama2012adapting}
+Satish~Narayana Srirama, Pelle Jakovits, and Eero Vainikko.
+\newblock Adapting scientific computing problems to clouds using mapreduce.
+\newblock {\em Future Generation Computer Systems}, 28(1):184--192, 2012.
+
 \bibitem{tomasi1998bilateral}
 Carlo Tomasi and Roberto Manduchi.
 \newblock Bilateral filtering for gray and color images.

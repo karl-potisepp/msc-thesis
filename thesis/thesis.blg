@@ -20,45 +20,45 @@ Too many commas in name 1 of "H. Trease, D. Fraser, R. Farber, S. Elbert" for en
 while executing---line 1090 of file plain.bst
 Warning--empty journal in trease08
 Warning--empty year in trease08
-You've used 18 entries,
+You've used 19 entries,
             2118 wiz_defined-function locations,
-            611 strings with 7501 characters,
-and the built_in function-call counts, 6571 in all, are:
-= -- 654
-> -- 292
+            617 strings with 7697 characters,
+and the built_in function-call counts, 6935 in all, are:
+= -- 691
+> -- 310
 < -- 7
-+ -- 119
-- -- 98
-* -- 442
-:= -- 1020
-add.period$ -- 52
-call.type$ -- 18
-change.case$ -- 102
++ -- 126
+- -- 104
+* -- 473
+:= -- 1081
+add.period$ -- 55
+call.type$ -- 19
+change.case$ -- 108
 chr.to.int$ -- 0
-cite$ -- 21
-duplicate$ -- 260
-empty$ -- 536
-format.name$ -- 98
-if$ -- 1433
+cite$ -- 22
+duplicate$ -- 271
+empty$ -- 563
+format.name$ -- 104
+if$ -- 1506
 int.to.chr$ -- 0
-int.to.str$ -- 18
-missing$ -- 12
-newline$ -- 85
-num.names$ -- 34
-pop$ -- 136
+int.to.str$ -- 19
+missing$ -- 13
+newline$ -- 90
+num.names$ -- 36
+pop$ -- 140
 preamble$ -- 1
-purify$ -- 85
+purify$ -- 90
 quote$ -- 0
-skip$ -- 212
+skip$ -- 219
 stack$ -- 0
-substring$ -- 404
-swap$ -- 80
+substring$ -- 434
+swap$ -- 81
 text.length$ -- 7
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 71
+type$ -- 75
 warning$ -- 3
-while$ -- 61
-width$ -- 20
-write$ -- 190
+while$ -- 65
+width$ -- 21
+write$ -- 201
 (There were 2 error messages)
