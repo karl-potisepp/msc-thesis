@@ -12,6 +12,8 @@ fi
 OBJFILE=${1}
 TARGETFILE=${2}
 
+#TODO python script to read coords from find_obj for ppixelvalue
+
 #ppng2pan ${OBJFILE} object.pan
 echo "convert to .pan"
 pjpeg2pan "${TARGETFILE}" target.pan
@@ -20,13 +22,13 @@ pjpeg2pan "${TARGETFILE}" target.pan
 echo "normalize"
 pnormalization 0 255 target.pan target.pan
 echo "thresholding"
-pbinarization 156 255 target.pan binarized.pan
+pbinarization 156 255 target.pan labels.pan
 echo "labeling"
-plabeling 8 binarized.pan labels.pan
+plabeling 8 labels.pan labels.pan
 echo "erosion"
 perosion 1 10 labels.pan labels.pan
-echo "dilatation"
-pdilatation 1 10 labels.pan labels.pan
+#echo "dilatation"
+#pdilatation 1 10 labels.pan labels.pan
 echo "bounding box"
 pboundingbox labels.pan labels.pan
 
@@ -35,6 +37,7 @@ echo "extract point of interest"
 ppixelvalue 3076 1387 0 labels.pan tmp.col
 VAL=`pstatus`
 plabelselection $VAL labels.pan out.pan
+ppan2txt out.pan out.txt
 pmask target.pan out.pan out.pan
 
 echo "write output"
@@ -42,4 +45,15 @@ echo "write output"
 #pnormalization 0 255 out.pan out.pan
 pim2uc out.pan out.pan
 ppan2png out.pan out.png
+
+head -n 1 out.txt > coords
+tail -n 1 out.txt >> coords
+
+#python script to read coords and call convert
+python extract_box.py out.png
+
+rm *pan
+rm tmp.col
+rm out.txt
+rm coords
 
