@@ -41,9 +41,10 @@ public class SequenceFileCreator {
 		}
 		
 		String inPath = args[0];
+		inPath = "/home/karl/kool/msc_thesis/git/object_recognition_test";
 		String outPath = args[1];
 		int filesPerChunk = Integer.valueOf(args[2]);
-		filesPerChunk = 100;
+		filesPerChunk = 5;
 		
 		allPaths = new ArrayList<String>();
 		recursive_walk(new File(inPath));
@@ -54,7 +55,7 @@ public class SequenceFileCreator {
     	FileSystem fs = FileSystem.get(conf);
 		
 		String tmp;
-		int c = 0, num = 1;
+		int c = 1, num = 1;
 		SequenceFile.Writer writer = SequenceFile.createWriter(fs, conf, new Path(outPath+"/"+num+".seq"), 
 				Text.class, BytesWritable.class, 
 				SequenceFile.CompressionType.NONE);
@@ -62,7 +63,7 @@ public class SequenceFileCreator {
 		byte[] tmpbytes;
 		while(it.hasNext()){
 			
-			if(c > 0 && c % filesPerChunk == 0){
+			if(c > 0 && (c % filesPerChunk) == 0){
 				writer.close();
 				writer = SequenceFile.createWriter(fs, conf, new Path(outPath+"/"+num+".seq"), 
 						Text.class, BytesWritable.class, 
@@ -73,17 +74,19 @@ public class SequenceFileCreator {
 			
 			tmp = it.next();
 			
-			if(tmp.toLowerCase().endsWith("jpg") || tmp.toLowerCase().endsWith("jpeg") || 
-					tmp.toLowerCase().endsWith("png")){
+			if(tmp.toLowerCase().endsWith("jpg") || tmp.toLowerCase().endsWith("jpeg")){  
+//					|| tmp.toLowerCase().endsWith("png")){
 				
 				tmpbytes = FileUtils.readFileToByteArray(new File(tmp));
 				writer.append( new Text(tmp), new BytesWritable(tmpbytes));
-				System.out.println(tmp);
-				System.out.println(c+1);
+//				System.out.println(tmp);
+//				System.out.println(c+1);
+											
 				c++;
+				System.out.println("seqfile " + (num-1) + " file " + (c % filesPerChunk) + " : " + tmp);
 			}
 					
-			if(c == 1000){
+			if(c == 10){
 				break;
 			}			
 		}
