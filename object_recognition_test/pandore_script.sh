@@ -66,6 +66,7 @@ if [ ! -s "${OUTNAME}_coords" ]; then
 	rm "${OUTNAME}.pan"
 	rm "${OUTNAME}_labels.pan"
 	rm "${OUTNAME}_out.pan"
+	rm "${OUTNAME}_out.png"
 	rm "${OUTNAME}_tmp.col"
 	rm "${OUTNAME}_out.txt"
 	rm "${OUTNAME}_coords"

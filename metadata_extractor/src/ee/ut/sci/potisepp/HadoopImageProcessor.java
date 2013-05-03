@@ -99,7 +99,7 @@ public class HadoopImageProcessor {
 		}		
 	}
 	
-public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWritable, Text, IntWritable>{
+public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWritable, Text, Text>{
 		
 		JobConf conf;
 		FileSystem fs;
@@ -145,7 +145,7 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 			}			
 		}
 			
-		public void map(Text key, BytesWritable value, OutputCollector<Text, IntWritable> output, Reporter reporter) throws IOException
+		public void map(Text key, BytesWritable value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException
 		{			
 //			String keyStr = key.toString();
 			String tmpFilename = "/tmp/imageprocessor-"+UUID.randomUUID().toString();
@@ -173,8 +173,8 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 			tags.add("Copyright");
 			tags.add("Credit");
 			
-			Text outkey = new Text();
-			IntWritable outval = new IntWritable(1);
+//			Text outkey = new Text();
+//			IntWritable outval = new IntWritable(1);
 			
 			for (Directory directory : metadata.getDirectories()) {
 			    for (Tag tag : directory.getTags()) {
@@ -196,77 +196,97 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 				e.printStackTrace();
 			}
 
-			BufferedReader b = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String line = "";
-
-			while ((line = b.readLine()) != null) {
-			  System.out.println(line);
-			}
+//			uncomment to see script stdout
+			
+//			BufferedReader b = new BufferedReader(new InputStreamReader(p.getInputStream()));
+//			String line = "";
+//
+//			while ((line = b.readLine()) != null) {
+//			  System.out.println(line);
+//			}
 			
 			if( retval == 0){
 				metadata_map.put("OCR", "SUCCESS");
-				outkey.set("SUCCESS");
-	    		output.collect(outkey, outval);
+//				outkey.set("SUCCESS");
+//	    		output.collect(outkey, outval);
 				//TODO read OCR outfile and delete it afterwards
+	    		File OCRFile = new File(tmpFilename+".txt");
+				String OCRtext = new Scanner(OCRFile).useDelimiter("\n").next();
+				metadata_map.put("OCR_RESULT", OCRtext);
+				FileUtils.deleteQuietly(OCRFile);	    		
 			}
 			else if (retval == 255){
 				metadata_map.put("OCR", "NO MATCH (FIND OBJ)");
-				outkey.set("NO MATCH (FIND OBJ)");
-	    		output.collect(outkey, outval);
+//				outkey.set("NO MATCH (FIND OBJ)");
+//	    		output.collect(outkey, outval);
 			}
 			else if (retval == 254){
 				metadata_map.put("OCR", "NO MATCH (EXTRACT ROI)");
-				outkey.set("NO MATCH (EXTRACT ROI)");
-	    		output.collect(outkey, outval);
+//				outkey.set("NO MATCH (EXTRACT ROI)");
+//	    		output.collect(outkey, outval);
 			}
 			
 			FileUtils.deleteQuietly(tmpFile);
-			
+						
 //			Map<String, String> metadata = image.getMetadata();
-//			Iterator<String> it = metadata.keySet().iterator();
-//			String cur_key;
-//			String outval = "";
-//			while(it.hasNext()){
-//				cur_key = it.next();
-//				outval += "\t" + cur_key + "\t" + metadata.get(cur_key);
-////				System.out.println(cur_key + " : " + metadata.get(cur_key));
-//			}
-//				
-//			output.collect(key, new Text(outval));
-			
+			Iterator<String> it = metadata_map.keySet().iterator();
+			String cur_key;
+			Text outval = new Text("");
+			while(it.hasNext()){
+				cur_key = it.next();
+				outval.set(cur_key + ";" + metadata_map.get(cur_key));
+//				System.out.println(cur_key + " : " + metadata.get(cur_key));
+				output.collect(key, new Text(outval));
+			}
+						
 		}
 	}
 	
-	public static class OCRReduce extends MapReduceBase implements Reducer<Text, IntWritable, Text, IntWritable>{		
-		public void reduce(Text key, Iterator<IntWritable> values, OutputCollector<Text, IntWritable> output, Reporter reporter) throws IOException
+	public static class OCRReduce extends MapReduceBase implements Reducer<Text, Text, Text, Text>{		
+		public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> output, Reporter reporter) throws IOException
 		{
-			int sum = 0;
 			
+			String tmp = "";
 			while(values.hasNext()){
-				sum += values.next().get();
+				tmp += values.next().toString()+"\t";
 			}
-			output.collect(key, new IntWritable(sum));
+			
+			output.collect(key, new Text(tmp));
+			
+//			int sum = 0;
+//			
+//			while(values.hasNext()){
+//				sum += values.next().get();
+//			}
+//			output.collect(key, new IntWritable(sum));
+			
 		}		
 	}
 
 	public static void main(String[] args) throws Exception {
 		
-		if(args.length<2){
-			System.out.println("Not enough arguments! Please provide input path and output path.");
+		if(args.length<7){
+			System.out.println("Not enough arguments! Required: INPUT_PATH OUTPUT_PATH BOX_PNG PANDORE_SCRIPT FIND_OBJ FIND_BOX EXTRACT_BOX");
 			System.exit(0);
 		}
 		
 		JobConf conf = new JobConf(HadoopImageProcessor.class);
 		conf.setJobName("hadoop_metadata_extract");
 		
-		conf.set("pathToObj", "/home/karl/kool/msc_thesis/git/object_recognition_test/box.png");
-		conf.set("pathToScript", "/home/karl/kool/msc_thesis/git/object_recognition_test/pandore_script.sh");
-		conf.set("pathToFindObj", "/home/karl/kool/msc_thesis/git/object_recognition_test/find_obj");
-		conf.set("pathToFindBox", "/home/karl/kool/msc_thesis/git/object_recognition_test/find_box.py");
-		conf.set("pathToExtractBox", "/home/karl/kool/msc_thesis/git/object_recognition_test/extract_box.py");
+//		conf.set("pathToObj", "/home/karl/kool/msc_thesis/git/object_recognition_test/box.png");
+//		conf.set("pathToScript", "/home/karl/kool/msc_thesis/git/object_recognition_test/pandore_script.sh");
+//		conf.set("pathToFindObj", "/home/karl/kool/msc_thesis/git/object_recognition_test/find_obj");
+//		conf.set("pathToFindBox", "/home/karl/kool/msc_thesis/git/object_recognition_test/find_box.py");
+//		conf.set("pathToExtractBox", "/home/karl/kool/msc_thesis/git/object_recognition_test/extract_box.py");
+		
+		conf.set("pathToObj", args[2]);
+		conf.set("pathToScript", args[3]);
+		conf.set("pathToFindObj", args[4]);
+		conf.set("pathToFindBox", args[5]);
+		conf.set("pathToExtractBox", args[6]);
 		
 		conf.setOutputKeyClass(Text.class);
-		conf.setOutputValueClass(IntWritable.class);
+		conf.setOutputValueClass(Text.class);
 		
 		conf.setMapperClass(OCRMap.class);
 		conf.setReducerClass(OCRReduce.class);

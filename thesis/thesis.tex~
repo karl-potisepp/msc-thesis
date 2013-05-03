@@ -129,9 +129,9 @@ The distinction between iterative and non-iterative algorithms is simpler: a non
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.5]{local_iterative.eps} %TODO render with PDF
-%\includegraphics[]{local_iterative.pdf} %render with PDF
-\caption{Illustration of the data requirements of iterative local processing. The top row represents first local computations of the first iteration. The diagram on the bottom shows the requirements at the start of the second iteration.}
+\includegraphics[scale=0.8]{local_iterative.eps} %TODO render with PDF
+%\includegraphics[scale=0.8]{local_iterative.pdf} %render with PDF
+\caption{Illustration of the data requirements of iterative local processing. The top row represents first local computations of the first iteration. The diagram on the bottom shows the requirements at the start of the second iteration. Arrows encode a 'depends on' relationship: the value from which the arrow originates depends on the value the arrow is pointing at.}
 \label{fig_local_iterative}
 \end{center}
 \end{figure}
@@ -195,7 +195,14 @@ The basic idea behind MapReduce is based on the observation that a lot of proces
 \item Once all input pairs have been processed, the output of the Reduce function is then written to disk as Key-Value pairs. 
 \end{enumerate}
 
-
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.5]{mapreduce.eps} %TODO render with PDF
+%\includegraphics[scale=0.8]{local_iterative.pdf} %render with PDF
+\caption{A simple example of the MapReduce computation model, inspired by the WordCount example provided in the Apache Hadoop Getting Started tutorial.}
+\label{fig_mapreduce}
+\end{center}
+\end{figure}
  
 %Description of the general philosophy of MapReduce, the logic behind Map/Reduce/etc. parts of the processing chain, and how this approach suits/is cumbersome when dealing with image processing.
 
@@ -206,7 +213,7 @@ Hadoop is an open-source framework for distributed computing developed by the Ap
 HDFS is the underlying file system that Hadoop uses in order to store data meant to be processed by MapReduce. It is inspired by the Google File System (GFS) (TODO cite). There are two reasons why the file system comes into play when discussing image processing using Hadoop. Firstly, the distributed nature of HDFS ensures that all input data is spread across the cluster's storage so that at least initially every worker can process data stored on it's local hard drive. Secondly, the configured block size somewhat restricts the storage of files - if a file is larger than the block size and can not easily be split, then all it's blocks will have to be stored in the same location, which in essence means that the advantages from having a small block size are lost.
 TODO replication, what happens to a file when it is bigger than 1 block size
 
-\section{Running a MapReduce job}
+\subsubsection{Running a MapReduce job}
 
 TODO how to write a job, what to take into account (with regard to images), what are the restrictions w/r/t communication, storage
 
@@ -214,7 +221,7 @@ TODO what is a MapReduce job?
 
 \section{Image processing}
 
-In this thesis, I will restrict my focus with regard to the field of image processing to two-dimensional color images. The following will not be a description of how images are acquired through the use of scanning or digital cameras, therefore it is assumed here that the reader is familiar with the notions of pixels, 2-dimensional coordinate notation and representing color using red, green and blue values. Therefore I will start with the following formal definition: I consider the image $I$ with width $x$ and height $y$ as a collection of pixels $p$, such that
+As already mentioned in the preceding text, in this thesis I will restrict my focus with regard to the field of image processing to two-dimensional color images. The following will not be a description of how images are acquired through the use of scanning or digital cameras, therefore it is assumed here that the reader is familiar with the notions of pixels, 2-dimensional coordinate notation and representing color using red, green and blue values. Therefore I will start with the following formal definition: I consider the image $I$ with width $x$ and height $y$ as a collection of pixels $p$, such that
 
 \begin{center}
 $I = \{ \, p_{i,j} | \, i \in [1,x], \, j \in [1,y] \, \}$, and
@@ -237,6 +244,12 @@ TODO gaussian blur, edge detection, etc. with processing requirements
 For processing images while working on the practical part of this thesis, I used the ImageJ library. It is a freely available image processing application written in Java and developed by the National Institutes of Health \cite{imagej}. It supports the processing and analysis of a wide variety of image types (8-, 16-, 32-bit RGB/black \& white images) and many commonly used image file formats such as PNG, TIFF and JPEG.
 
 TODO how was imagej used in the work
+
+\subsection{OpenCV}
+
+\subsection{Tesseract}
+
+\subsection{Pandore}
 
 \section{Image processing and MapReduce}
 
