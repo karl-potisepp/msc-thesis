@@ -41,10 +41,10 @@ public class SequenceFileCreator {
 		}
 		
 		String inPath = args[0];
-		inPath = "/home/karl/kool/msc_thesis/git/object_recognition_test";
+//		inPath = "/home/karl/kool/msc_thesis/git/object_recognition_test";
 		String outPath = args[1];
 		int filesPerChunk = Integer.valueOf(args[2]);
-		filesPerChunk = 5;
+		filesPerChunk = 250;
 		
 		allPaths = new ArrayList<String>();
 		recursive_walk(new File(inPath));
@@ -86,9 +86,9 @@ public class SequenceFileCreator {
 				System.out.println("seqfile " + (num-1) + " file " + (c % filesPerChunk) + " : " + tmp);
 			}
 					
-			if(c == 10){
-				break;
-			}			
+//			if(c == 10){
+//				break;
+//			}			
 		}
 		writer.close();
 		
