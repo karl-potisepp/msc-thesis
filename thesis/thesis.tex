@@ -195,11 +195,13 @@ The basic idea behind MapReduce is based on the observation that a lot of proces
 \item Once all input pairs have been processed, the output of the Reduce function is then written to disk as Key-Value pairs. 
 \end{enumerate}
 
+At first glance, this mode of computing may seem restrictive. This is true in the sense that when adapting algorithms to this model, radical changes must in some cases be made in order to attain the best possible performance. 
+
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.5]{mapreduce.eps} %TODO render with PDF
-%\includegraphics[scale=0.8]{local_iterative.pdf} %render with PDF
-\caption{A simple example of the MapReduce computation model, inspired by the WordCount example provided in the Apache Hadoop Getting Started tutorial. A text file is first converted into pairs of line number and its content (Input), then the Map function splits these pairs further so that the reducer receives }
+%\includegraphics[scale=0.8]{mapreduce.pdf} %render with PDF
+\caption{A simple example of the MapReduce computation model, inspired by the WordCount example provided in the Apache Hadoop Getting Started tutorial. A text file is first converted into pairs of line number and its content (Input), then the Map function splits these pairs further so that the reducer receives one pair per occurrence of a word. The objective of the Reduce function is then to count the individual occurrences and finally output the total per each distinct word.}
 \label{fig_mapreduce}
 \end{center}
 \end{figure}

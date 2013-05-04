@@ -27,15 +27,6 @@ public class SequentialBF {
 		float sigmaX = Float.parseFloat(args[3]);
 		float sigmaY = Float.parseFloat(args[4]);
 		float sigmaZ = Float.parseFloat(args[5]);
-<<<<<<< HEAD
-//		
-//		infile = "../../../big_img/lenna1.png";
-//		outfile = "../../../big_img/lenna1_bf.png";
-=======
-		
-		//infile = "../../../big_img/lenna1.png";
-		//outfile = "../../../big_img/lenna1_bf.png";
->>>>>>> 89835dc371d3a53ea41b4623543332e94989b636
 		
 		System.out.println("infile: " + infile);
 		System.out.println("outfile: " + outfile);

@@ -2,10 +2,10 @@ package ee.ut.sci.potisepp;
 
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
+//import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
+//import java.io.InputStreamReader;
 import java.util.*;
 
 import org.apache.commons.io.FileUtils;
@@ -213,7 +213,7 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 	    		File OCRFile = new File(tmpFilename+".txt");
 				String OCRtext = new Scanner(OCRFile).useDelimiter("\n").next();
 				metadata_map.put("OCR_RESULT", OCRtext);
-				FileUtils.deleteQuietly(OCRFile);	    		
+				FileUtils.deleteQuietly(OCRFile); 		
 			}
 			else if (retval == 255){
 				metadata_map.put("OCR", "NO MATCH (FIND OBJ)");
@@ -227,6 +227,13 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 			}
 			
 			FileUtils.deleteQuietly(tmpFile);
+			p = r.exec("rm /tmp/"+ tmpFilename, null, new File("/tmp"));
+			try {
+				retval = p.waitFor();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 						
 //			Map<String, String> metadata = image.getMetadata();
 			Iterator<String> it = metadata_map.keySet().iterator();
