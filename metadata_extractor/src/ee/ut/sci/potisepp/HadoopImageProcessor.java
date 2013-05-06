@@ -3,8 +3,10 @@ package ee.ut.sci.potisepp;
 
 import java.io.BufferedInputStream;
 //import java.io.BufferedReader;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 //import java.io.InputStreamReader;
 import java.util.*;
 
@@ -120,11 +122,19 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 			
 			try {
 				fs = p.getFileSystem(conf);
-				fs.copyFromLocalFile(new Path(pathToObj), new Path("/tmp/obj.png"));
-				fs.copyFromLocalFile(new Path(pathToScript), new Path("/tmp/pandore_script.sh"));
-				fs.copyFromLocalFile(new Path(pathToFindObj), new Path("/tmp/find_obj"));
-				fs.copyFromLocalFile(new Path(pathToFindBox), new Path("/tmp/find_box.py"));
-				fs.copyFromLocalFile(new Path(pathToExtractBox), new Path("/tmp/extract_box.py"));
+
+//				FileUtils.copyFile(new File(pathToObj), new File("/tmp/obj.png"));
+//				FileUtils.copyFile(new File(pathToScript), new File("/tmp/pandore_script.sh"));
+//				FileUtils.copyFile(new File(pathToFindObj), new File("/tmp/find_obj"));
+//				FileUtils.copyFile(new File(pathToFindBox), new File("/tmp/find_box.py"));
+//				FileUtils.copyFile(new File(pathToExtractBox), new File("/tmp/extract_box.py"));
+				
+//				fs.copyToLocalFile(new Path(pathToObj), new Path("/tmp/obj.png"));
+//				fs.copyToLocalFile(new Path(pathToScript), new Path("/tmp/pandore_script.sh"));
+//				fs.copyToLocalFile(new Path(pathToFindObj), new Path("/tmp/find_obj"));
+//				fs.copyToLocalFile(new Path(pathToFindBox), new Path("/tmp/find_box.py"));
+//				fs.copyToLocalFile(new Path(pathToExtractBox), new Path("/tmp/extract_box.py"));
+												
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -147,47 +157,50 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 			
 		public void map(Text key, BytesWritable value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException
 		{			
-//			String keyStr = key.toString();
+			String keyStr = key.toString();
 			String tmpFilename = "/tmp/imageprocessor-"+UUID.randomUUID().toString();
 			File tmpFile = new File(tmpFilename);
 			FileUtils.writeByteArrayToFile(tmpFile, value.getBytes());
 			
-			FSDataInputStream fsin = fs.open(new Path(tmpFilename));
-			BufferedInputStream bin = new BufferedInputStream(fsin);
+//			FSDataInputStream fsin = fs.open(new Path(tmpFilename));
+			BufferedInputStream bin = new BufferedInputStream(FileUtils.openInputStream(tmpFile));
 			
 			Metadata metadata = null;
-			try {
-				metadata = ImageMetadataReader.readMetadata(bin, true);
-			} catch (ImageProcessingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
 			TreeMap <String, String> metadata_map = new TreeMap<String, String>();
 			HashSet<String> tags = new HashSet<String>();
-			tags.add("Date/Time");
-			tags.add("Owner Name");
-			tags.add("Time Created");
-			tags.add("Artist");
-			tags.add("City");
-			tags.add("Copyright");
-			tags.add("Credit");
 			
-//			Text outkey = new Text();
-//			IntWritable outval = new IntWritable(1);
-			
-			for (Directory directory : metadata.getDirectories()) {
-			    for (Tag tag : directory.getTags()) {
-			    	if( tags.contains(tag.getTagName()) ){
-			    		metadata_map.put(tag.getTagName(), tag.getDescription());
-			    	}		        
-			    }
+			if(keyStr.toLowerCase().endsWith("jpeg") || keyStr.toLowerCase().endsWith("jpg")){
+						
+				try {
+					metadata = ImageMetadataReader.readMetadata(bin, true);
+					tags.add("Image Height");
+					tags.add("Image Width");
+					tags.add("Date/Time");
+					tags.add("Owner Name");
+					tags.add("Artist");
+					tags.add("City");
+					tags.add("Copyright");
+					tags.add("Credit");
+					
+					for (Directory directory : metadata.getDirectories()) {
+					    for (Tag tag : directory.getTags()) {
+					    	if( tags.contains(tag.getTagName()) ){
+					    		metadata_map.put(tag.getTagName(), tag.getDescription());
+					    	}		        
+					    }
+					}
+					
+				} catch (ImageProcessingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
+				
 			bin.close();
-			fsin.close();
+//			fsin.close();
 			
 			Runtime r = Runtime.getRuntime();
-			Process p = r.exec("/tmp/pandore_script.sh /tmp/obj.png "+ tmpFilename, null, new File("/tmp"));
+			Process p = r.exec("/home/ubuntu/ocr/pandore_script.sh "+ pathToObj + " " + tmpFilename, null, new File("/home/ubuntu/ocr"));
 			int retval = 0;
 			try {
 				retval = p.waitFor();
@@ -198,12 +211,19 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 
 //			uncomment to see script stdout
 			
-//			BufferedReader b = new BufferedReader(new InputStreamReader(p.getInputStream()));
-//			String line = "";
-//
-//			while ((line = b.readLine()) != null) {
-//			  System.out.println(line);
-//			}
+			//stdout
+			BufferedReader b = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			String line = "";
+			
+			while ((line = b.readLine()) != null) {
+			  System.out.println(line);
+			}
+			
+			//stderr
+			b = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			while ((line = b.readLine()) != null) {
+			  System.err.println(line);
+			}
 			
 			if( retval == 0){
 				metadata_map.put("OCR", "SUCCESS");
@@ -211,7 +231,14 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 //	    		output.collect(outkey, outval);
 				//TODO read OCR outfile and delete it afterwards
 	    		File OCRFile = new File(tmpFilename+".txt");
-				String OCRtext = new Scanner(OCRFile).useDelimiter("\n").next();
+	    		String OCRtext = null;
+	    		try {
+	    			OCRtext = new Scanner(FileUtils.openInputStream(OCRFile)).useDelimiter("\n").next();
+	    		}
+	    		catch (NoSuchElementException n) {
+	    			
+	    		}
+				
 				metadata_map.put("OCR_RESULT", OCRtext);
 				FileUtils.deleteQuietly(OCRFile); 		
 			}

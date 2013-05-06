@@ -74,11 +74,6 @@ For solving processing tasks involving data of this scale, engineers at Google (
 
 The rest of this work is structured as follows. In the next sections I will describe in more detail the terminology and the problem at hand, give a brief overview of previous work in this area. Chapter 2 will focus on describing the MapReduce model and the specifics of it's implementation in Apache Hadoop. In chapter 4 I will look at two different practical use cases for applying MapReduce to large scale image data. The fifth and final chapter provides an overview of the results and outputs of this thesis. TODO obviously rewrite this part after the structure finalised. %TODO
 
-%Image processing, high resolution medical images, cheap quality cameras and abundance of photos. Also cheap hard drives which allow to store all this stuff. TODO explain :)
-
-%In this thesis, I will describe solving two different image processing tasks related to two-dimensional colour images using the Hadoop open source distributed computing framework. %TODO
-
-%Description in broad terms of what has been achieved with this thesis.
 
 %Possible subtopics:
 %\begin{itemize}
@@ -195,7 +190,7 @@ The basic idea behind MapReduce is based on the observation that a lot of proces
 \item Once all input pairs have been processed, the output of the Reduce function is then written to disk as Key-Value pairs. 
 \end{enumerate}
 
-At first glance, this mode of computing may seem restrictive. This is true in the sense that when adapting algorithms to this model, radical changes must in some cases be made in order to attain the best possible performance. 
+It is important to note here that the MapReduce model simply specifies a very general structure with a focus on how data is put through calculation, but not what the different steps of the computation do with the data - it is expected that the user specifies this for all four steps. To illustrate this concept, a simple example of a MapReduce algorithm counting the occurrences of words in text documents is presented in figure \ref{fig_mapreduce}. In every step, the Key-Value pairs can be processed independently, and therefore this processing can be distributed amongst a group of computers. Commonly, this is referred to as a cluster and the individual computers that belong to it are called nodes.
 
 \begin{figure}[h]
 \begin{center}
@@ -205,6 +200,11 @@ At first glance, this mode of computing may seem restrictive. This is true in th
 \label{fig_mapreduce}
 \end{center}
 \end{figure}
+
+Let us now analyse the adaptation of algorithms to the MapReduce model with regard to the four classes of image processing algorithms described earlier in this text. First, we see it is easy to adapt local non-iterative computations to this model. To do this we simply have to define our Input step so that each Key-Value pair corresponds to one image (it can also be a part of a larger image). Then, the Map phase applies the algorithm, and results are returned by the Output step. Here, the Reduce step is defined as an identity function returning it's own input. The case is similar with local iterative algorithms, although - as discussed before - the approach of partitioning large images into manageable blocks will affect the results of the algorithm and may therefore be inapplicable. However, in some cases, this loss may be outweighed by gains in performance when compared to sequential processing.
+
+Adapting image processing algorithms to MapReduce becomes more complex in the case of non-local algorithms, because memory restrictions TODO
+
  
 %Description of the general philosophy of MapReduce, the logic behind Map/Reduce/etc. parts of the processing chain, and how this approach suits/is cumbersome when dealing with image processing.
 
