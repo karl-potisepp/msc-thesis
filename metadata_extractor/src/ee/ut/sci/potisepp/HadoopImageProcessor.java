@@ -5,6 +5,7 @@ import java.io.BufferedInputStream;
 //import java.io.BufferedReader;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 //import java.io.InputStreamReader;
@@ -227,17 +228,24 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 				metadata_map.put("OCR", "SUCCESS");
 //				outkey.set("SUCCESS");
 //	    		output.collect(outkey, outval);
-				//TODO read OCR outfile and delete it afterwards
+				//read OCR outfile and delete it afterwards
 	    		File OCRFile = new File(tmpFilename+".txt");
 	    		String OCRtext = "";
-	    		Scanner OCRScanner = new Scanner(FileUtils.openInputStream(OCRFile)).useDelimiter("\n");
-	    		while(OCRScanner.hasNext()){
-	    			OCRtext += " " + OCRScanner.next();
+	    		
+	    		try {
+	    			Scanner OCRScanner = new Scanner(FileUtils.openInputStream(OCRFile)).useDelimiter("\n");
+		    		while(OCRScanner.hasNext()){
+		    			OCRtext += " " + OCRScanner.next();
+		    		}
+		    		
+		    		if(OCRtext.trim().length() > 0)	metadata_map.put("OCR_RESULT", OCRtext);
+		    		
+					FileUtils.deleteQuietly(OCRFile);
 	    		}
-	    		
-	    		if(OCRtext.trim().length() > 0)	metadata_map.put("OCR_RESULT", OCRtext);
-	    		
-				FileUtils.deleteQuietly(OCRFile); 		
+	    		catch ( FileNotFoundException e){
+	    			System.err.println("OCR result file not found.");
+	    		}	    		
+	    		 		
 			}
 			else if (retval == 255){
 				metadata_map.put("OCR", "NO MATCH (FIND OBJ)");
