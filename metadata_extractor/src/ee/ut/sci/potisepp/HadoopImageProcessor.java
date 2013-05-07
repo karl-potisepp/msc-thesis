@@ -176,8 +176,6 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 					tags.add("Image Height");
 					tags.add("Image Width");
 					tags.add("Date/Time");
-					tags.add("Owner Name");
-					tags.add("Artist");
 					tags.add("City");
 					tags.add("Copyright");
 					tags.add("Credit");
@@ -231,15 +229,14 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 //	    		output.collect(outkey, outval);
 				//TODO read OCR outfile and delete it afterwards
 	    		File OCRFile = new File(tmpFilename+".txt");
-	    		String OCRtext = null;
-	    		try {
-	    			OCRtext = new Scanner(FileUtils.openInputStream(OCRFile)).useDelimiter("\n").next();
+	    		String OCRtext = "";
+	    		Scanner OCRScanner = new Scanner(FileUtils.openInputStream(OCRFile)).useDelimiter("\n");
+	    		while(OCRScanner.hasNext()){
+	    			OCRtext += " " + OCRScanner.next();
 	    		}
-	    		catch (NoSuchElementException n) {
-	    			
-	    		}
-				
-				metadata_map.put("OCR_RESULT", OCRtext);
+	    		
+	    		if(OCRtext.trim().length() > 0)	metadata_map.put("OCR_RESULT", OCRtext);
+	    		
 				FileUtils.deleteQuietly(OCRFile); 		
 			}
 			else if (retval == 255){
@@ -254,7 +251,7 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 			}
 			
 			FileUtils.deleteQuietly(tmpFile);
-			p = r.exec("rm /tmp/"+ tmpFilename, null, new File("/tmp"));
+			p = r.exec("rm "+ tmpFilename, null, new File("/tmp"));
 			try {
 				retval = p.waitFor();
 			} catch (InterruptedException e) {
@@ -280,9 +277,17 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 		public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> output, Reporter reporter) throws IOException
 		{
 			
-			String tmp = "";
+			ArrayList<String> data = new ArrayList<String>();
 			while(values.hasNext()){
-				tmp += values.next().toString()+"\t";
+				data.add(values.next().toString());
+			}
+			
+			Collections.sort(data);
+			
+			Iterator<String> it = data.iterator();
+			String tmp = "";
+			while(it.hasNext()){
+				tmp += it.next()+"\t";
 			}
 			
 			output.collect(key, new Text(tmp));

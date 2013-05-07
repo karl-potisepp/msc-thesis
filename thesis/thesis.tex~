@@ -190,7 +190,7 @@ The basic idea behind MapReduce is based on the observation that a lot of proces
 \item Once all input pairs have been processed, the output of the Reduce function is then written to disk as Key-Value pairs. 
 \end{enumerate}
 
-It is important to note here that the MapReduce model simply specifies a very general structure with a focus on how data is put through calculation, but not what the different steps of the computation do with the data - it is expected that the user specifies this for all four steps. To illustrate this concept, a simple example of a MapReduce algorithm counting the occurrences of words in text documents is presented in figure \ref{fig_mapreduce}. In every step, the Key-Value pairs can be processed independently, and therefore this processing can be distributed amongst a group of computers. Commonly, this is referred to as a cluster and the individual computers that belong to it are called nodes.
+It is important to note here that the MapReduce model simply specifies a very general structure with a focus on how data is put through calculation, but not what the different steps of the computation do with the data - it is expected that the user specifies this for all four steps. To illustrate this concept, a simple example of a MapReduce algorithm counting the occurrences of words in text documents is presented in figure \ref{fig_mapreduce}. In every step, the Key-Value pairs are processed independently, and therefore this processing can be distributed amongst a group of computers. Commonly, this is referred to as a \textit{cluster} and the individual computers that belong to it are called \textit{nodes}. 
 
 \begin{figure}[h]
 \begin{center}
@@ -201,9 +201,11 @@ It is important to note here that the MapReduce model simply specifies a very ge
 \end{center}
 \end{figure}
 
+An important aspect of a MapReduce computation is also communication. Since every Map and Reduce task is designed to operate independently, communication between instances of the algorithm is not possible, except in the step where output from the Map phase is sent to Reduce. Here, all Key-Value pairs are grouped together by Key and the Reduce function can then process all Values together. However, short of starting another MapReduce computation whose input is the previous one's output, there is no way to achieve communication between any given pair of 
+
 Let us now analyse the adaptation of algorithms to the MapReduce model with regard to the four classes of image processing algorithms described earlier in this text. First, we see it is easy to adapt local non-iterative computations to this model. To do this we simply have to define our Input step so that each Key-Value pair corresponds to one image (it can also be a part of a larger image). Then, the Map phase applies the algorithm, and results are returned by the Output step. Here, the Reduce step is defined as an identity function returning it's own input. The case is similar with local iterative algorithms, although - as discussed before - the approach of partitioning large images into manageable blocks will affect the results of the algorithm and may therefore be inapplicable. However, in some cases, this loss may be outweighed by gains in performance when compared to sequential processing.
 
-Adapting image processing algorithms to MapReduce becomes more complex in the case of non-local algorithms, because 
+Adapting both iterative and non-iterative non-local image processing algorithms to MapReduce is also straightforward when the images in question are small enough fit into memory. With bigger images, however, the issue becomes more complex, as this is the only scenario in which two processing tasks working on different pieces of the same image would need to communicate with each other.
 
  
 %Description of the general philosophy of MapReduce, the logic behind Map/Reduce/etc. parts of the processing chain, and how this approach suits/is cumbersome when dealing with image processing.
