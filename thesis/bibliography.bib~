@@ -251,3 +251,15 @@ keywords = "Collective communication"
  url = {\url{http://people.csail.mit.edu/sparis/bf_course/}}
 }
 
+@article{srirama2012adapting,
+  title={Adapting scientific computing problems to clouds using MapReduce},
+  author={Srirama, Satish Narayana and Jakovits, Pelle and Vainikko, Eero},
+  journal={Future Generation Computer Systems},
+  volume={28},
+  number={1},
+  pages={184--192},
+  year={2012},
+  publisher={Elsevier}
+}
+
+

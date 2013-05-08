@@ -102,7 +102,7 @@ public class HadoopImageProcessor {
 		}		
 	}
 	
-public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWritable, Text, Text>{
+	public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWritable, Text, Text>{
 		
 		JobConf conf;
 		FileSystem fs;
@@ -162,6 +162,8 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 			String tmpFilename = "/tmp/imageprocessor-"+UUID.randomUUID().toString();
 			File tmpFile = new File(tmpFilename);
 			FileUtils.writeByteArrayToFile(tmpFile, value.getBytes());
+			
+			new myProgressThread(reporter).start();
 			
 //			FSDataInputStream fsin = fs.open(new Path(tmpFilename));
 			BufferedInputStream bin = new BufferedInputStream(FileUtils.openInputStream(tmpFile));
@@ -279,6 +281,33 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 			}
 						
 		}
+		
+		class myProgressThread extends Thread {
+			/** Reducer task context */
+			Reporter context;
+			/**
+			 * Constructor method
+			 * @param con_ Reducer task context
+			 */
+		    public myProgressThread(Reporter reporter) {
+		    	context = reporter;
+		    }
+		    
+		    /**
+		     * Thread activation method
+		     * Sleeps for 500 seconds and then sends a notice to MapReduce 
+		     * framework that reducer is still calculating properly.  
+		     */
+		    public void run() {
+			   try {
+				   while(true){
+						sleep(500000);
+						context.progress();
+				   }
+				} catch (InterruptedException e) {}
+		    }
+		}
+		
 	}
 	
 	public static class OCRReduce extends MapReduceBase implements Reducer<Text, Text, Text, Text>{		
@@ -309,7 +338,7 @@ public static class OCRMap extends MapReduceBase implements Mapper<Text, BytesWr
 			
 		}		
 	}
-
+	
 	public static void main(String[] args) throws Exception {
 		
 		if(args.length<7){
