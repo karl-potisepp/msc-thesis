@@ -293,7 +293,7 @@ keywords = "Collective communication"
 }
 
 @ONLINE{tesseract,
- author = {Ray Smith},
+ author = {Smith, Ray},
  title = {Tesseract OCR library},
  month = {May},
  year = {2013},

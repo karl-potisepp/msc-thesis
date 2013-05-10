@@ -209,7 +209,20 @@ Adapting both iterative and non-iterative non-local image processing algorithms 
 \subsection{Apache Hadoop}
 Hadoop is an open-source framework for distributed computing, written in Java and developed by the Apache Foundation and inspired by Google's MapReduce \cite{white2012hadoop}. It has been in development since 2005 and - at the time of writing this work - is one of the most popular freely available applications of it's kind. As the framework is already being used for large-scale data analysis tasks by many companies such as Facebook and Yahoo, and at the same time is easily adapted for use with any kind of hardware, ranging from a single computer to large data center, it is the best candidate for image processing on the MapReduce model. In the following, I will attempt to describe the basics of Hadoop's implementation in general and with regard to image processing. Since much of this topic is also covered in the Yahoo! Hadoop Tutorial, I am not going to explain the subjects of cluster set-up and writing MapReduce programs in much detail.
 
-Hadoop provides a fairly straightforward implementation of the MapReduce model. In order to write a complete a MapReduce program (alternatively, a \textit{MapReduce job}), a programmer has to specify the following things:
+A typical Hadoop cluster consists of a master node and any number of computing nodes. The purpose of the master is to interact with users, monitor the status of the computing nodes, keep track of load balancing and handle various other background tasks. The computing nodes deal with processing and storing the data. The execution of a MapReduce program (alternatively, a \textit{MapReduce job}) can briefly be summed up in the following steps:
+
+\begin{enumerate} 
+\item The user uploads input data to the Hadoop Distributed File System (HDFS), which in turn distributes and stores it on the computing nodes.
+\item The user starts the job by specifying the MapReduce program to execute along with input-output paths and other parameters.
+\item The master node sends a copy of the program along with it's parameters to every computing node and starts the job.
+\item Computing nodes start the Map phase first by processing data on their local storage, moving on to data on other nodes if necessary and possible (this decision is up to the master node).
+\item After all Map tasks are finished, their output is sorted by their Keys, and sent to appropriate Reduce tasks.
+\item Once the Reduce phase is finished and it's output has been written back to HDFS, the user then retrieves the resulting data.
+\end{enumerate}
+
+In reality, this process is much more complicated due to procedures necessary for ensuring optimal performance and fault tolerance, among other things. A good example of this complexity is the time it takes for a MapReduce job to initialise: roughly 17 seconds. It is easy to see that this makes Hadoop unsuitable for any real-time processing and greatly reduces it's efficiency when considering approaches that involve iterating jobs. As Hadoop has hundreds of parameters for improving job efficiency, this subject is broad enough to warrant a study on its own. As discussed in previous parts, with regard to image processing we are mostly concerned with memory requirements and formatting the data to facilitate optimal processing.
+
+Hadoop provides a fairly straightforward implementation of the MapReduce model. In order to write a complete a MapReduce job, a programmer has to specify the following things:
 
 \begin{itemize}
 \item A \textit{InputFormat} class, which handles reading data from disk and converting it to Key-Value pairs for the Map function. 
@@ -218,24 +231,15 @@ Hadoop provides a fairly straightforward implementation of the MapReduce model. 
 \item A \textit{OutputFormat} class, which takes Key-Value pairs from the \textit{Reducer} and writes output to disk.
 \end{itemize} 
 
-Since the framework already comes with some basic implementations for all these classes, in very trivial cases, the programmer will just have to pick the ones that they need, and - assuming the Hadoop cluster is already set up - package the code into a Java Archive file (.jar), upload it to the master node and start the job. Normally, this is not the case, and the processing task requires the user to write custom classes to achieve the desired results. As Hadoop MapReduce jobs are themselves Java programs that can also be run independently (usually for testing purposes) without a previously set up computing cluster, and Hadoop places no restrictions with regard to the use of external libraries, the natural way to writing MapReduce jobs is using the Java programming language. However, the framework also provides a way to use functions written in essentially any language through the use of Hadoop Streaming and Pipes utilities. Furthermore, as demonstrated in the second use case scenario later in this work, the framework can simply be used to fulfill the role of distributing data, balancing loads and executing the scripts that handle the actual processing.
+Since the framework already comes with some basic implementations for all these classes, in very trivial cases, the programmer will just have to pick the ones that they need, and - assuming the Hadoop cluster is already set up - package the code into a Java Archive file (.jar), upload it to the master node and start the job. Normally this is not the case, and the processing task requires the user to write custom classes to achieve the desired results. As Hadoop MapReduce jobs are themselves Java programs that can also be run independently (usually for testing purposes) without a previously set up computing cluster, and Hadoop places no restrictions with regard to the use of external libraries, the natural way to writing MapReduce jobs is using the Java programming language. However, the framework also provides a way to use functions written in essentially any language through the use of Hadoop Streaming and Pipes utilities. Furthermore, as demonstrated in the second use case scenario later in this work, the framework can simply be used to fulfill the role of distributing data, balancing loads and executing the scripts that handle the actual processing.
 
 \subsubsection{Hadoop Distributed File System}
 
-One of the integral parts of a Hadoop cluster is the Hadoop Distributed File System (HDFS). Inspired by the Google File System, it's purpose is to provide a fault-tolerant storage structure capable of holding large amounts of data, allow for fast access of said data, and provide a way for MapReduce to perform computations on the same location as the data \cite{ghemawat2003google,borthakur2007hadoop}. An important aspect of HDFS with regard to image processing is it's approach in storing files as blocks. Namely, while the block size of a regular file system - such as ext3 - is 1 to 8 kilobytes depending on the configuration, with HDFS the default is 64 megabytes \cite{ext3}. 
+One of the integral parts of a Hadoop cluster is the Hadoop Distributed File System (HDFS). Inspired by the Google File System, it's purpose is to provide a fault-tolerant storage structure capable of holding large amounts of data, allow for fast access of said data, and provide a way for MapReduce to perform computations on the same location as the data \cite{ghemawat2003google,borthakur2007hadoop}. 
 
-%There are two reasons why the file system comes into play when discussing image processing using Hadoop. Firstly, the distributed nature of HDFS ensures that all input data is spread across the cluster's storage so that at least initially every worker can process data stored on it's local hard drive. Secondly, the configured block size somewhat restricts the storage of files - if a file is larger than the block size and can not easily be split, then all it's blocks will have to be stored in the same location, which in essence means that the advantages from having a small block size are lost.
-TODO replication, what happens to a file when it is bigger than 1 block size
+An important aspect of HDFS with regard to image processing is it's approach in storing files in blocks. Namely, while the block size of a regular file system - such as ext3 - is 1 to 8 kilobytes depending on the configuration, with HDFS, the default is 64 megabytes \cite{ext3}. This is because the file system is geared towards storing very large files, and a larger block size ensures that storage of meta-data such as read/write permissions and physical locations of individual blocks does not create any significant overhead. There are many other reasons for this design that have been explained thoroughly in works that I have referred to above. Block size is important with regard to processing images, since by default, both Map and Reduce functions receive one block's worth of Key-Value pairs as input. If an image is too big to fit within one block, it means that processing is delayed until the program retrieves the block(s) necessary to assemble all of the image, unless the algorithm is somehow equipped to process a partial image, which is unlikely both in the case of raw files and compressed formats such as JPEG or PNG. Therefore, in order to ensure optimal performance, images should fit inside the HDFS block size. This is not a problem with most regular images, as it is easily possible to configure the cluster for a block size of even 128 megabytes and more, however increasing this parameter past a certain point may not have the desired effects. Also, as discussed before, processing very large images sets considerable memory requirements to the computers. For these reasons, splitting large images into manageable parts is the best solution.
 
-\subsubsection{Running a MapReduce job}
-
-TODO how to write a job, what to take into account (with regard to images), what are the restrictions w/r/t communication, storage
-
-TODO what is a MapReduce job?
-
-\subsubsection{Alternatives to Hadoop}
-
-TODO Twister, HaLoop, Spark
+Most results presented in this thesis were attained with Hadoop version 0.20.2. While - at the time of writing this - there are several more current stable releases available, this choice was made because of the need to analyse the log files of completed MapReduce jobs using the Starfish Log Analyzer, developed by Herodotou et al. \cite{herodotou2011starfish}. To find out whether there are any drastic changes in performance in newer versions of Hadoop, some tests were also run with version 1.0.3, however no significant difference was found.
 
 \section{Image processing}
 
@@ -256,7 +260,7 @@ As image processing algorithms tend to operate on uncompressed images, using thi
 
 \subsection{Gaussian blur}
 
-The bilateral filter described later on in this thesis is an improvement of the Gaussian filter with regard to edge-preservation capability. The following describes how the Gaussian filter is applied to an image:
+One of the simplest local algorithms in image processing is Gaussian blur (also known as Gaussian smoothing). It's most common application is noise reduction. An example can be seen in figure \ref{fig_gaussian_blur}. The bilateral filter algorithm described later on in this thesis is an improvement of Gaussian blur with regard to edge-preservation capability. The following is a formal description of the algorithm:
 
 \begin{center}
 \begin{algorithm}[h]
@@ -304,26 +308,19 @@ Essentially, what happens to each pixel during the course of this algorithm, is 
 \end{figure}
 \end{center}
 
-\subsection{Technologies used}
+TODO also examples of local iterative processing and non-local (iterative) processing?
 
-\subsubsection{ImageJ}
-For processing images while working on the practical part of this thesis, I used the ImageJ library. It is a freely available image processing application written in Java and developed by the National Institutes of Health \cite{imagej}. It supports the processing and analysis of a wide variety of image types (8-, 16-, 32-bit RGB/black \& white images) and many commonly used image file formats such as PNG, TIFF and JPEG.
+%\section{Image processing and MapReduce}
 
-TODO how was imagej used in the work
+%It is known that the MapReduce method places some restrictions on iterative parallel processing algorithms that require communication between computing nodes. Since the only step in a MapReduce job that contains any communication takes place when the mappers send data to reducers, all the algorithms whose parallelised implementations require more than one communication phase, require more than one MapReduce job to complete. Due to the overhead involved in starting jobs, this can lead to a huge increase in computation time, particularly for algorithms that require many iterations to complete, and therefore makes MapReduce less than ideal for performing this sort of processing.
 
+%Fortunately, most image processing tasks involve doing many independent small-scale calculations in parallel. A good example of this is Gaussian blurring (smoothing), which transforms an input image by calculating a new value for every pixel based on it's neighbouring pixels. This procedure can be trivially parallelised since each calculation only requires the values of a small group of pixels in order to calculate the new value of the pixel in focus. In this case, the procedure requires only one step, so there is no need to worry about accommodating to iterations.
 
+%Things get a bit more complicated once we attempt to use some sort of edge-detection heuristic in order to smooth only those regions in the image which are homogenous in colour, and preserve sharpness in the contours. A common approach here is to iteratively smooth the image, re-calculating the heuristic at every step. 
 
-\section{Image processing and MapReduce}
+%TODO explain parallelisation by way of splitting the image into blocks, how to figure out the best block size analytically (take into account processing time, HDFS block size), overlap size etc.
 
-It is known that the MapReduce method places some restrictions on iterative parallel processing algorithms that require communication between computing nodes. Since the only step in a MapReduce job that contains any communication takes place when the mappers send data to reducers, all the algorithms whose parallelised implementations require more than one communication phase, require more than one MapReduce job to complete. Due to the overhead involved in starting jobs, this can lead to a huge increase in computation time, particularly for algorithms that require many iterations to complete, and therefore makes MapReduce less than ideal for performing this sort of processing.
-
-Fortunately, most image processing tasks involve doing many independent small-scale calculations in parallel. A good example of this is Gaussian blurring (smoothing), which transforms an input image by calculating a new value for every pixel based on it's neighbouring pixels. This procedure can be trivially parallelised since each calculation only requires the values of a small group of pixels in order to calculate the new value of the pixel in focus. In this case, the procedure requires only one step, so there is no need to worry about accommodating to iterations.
-
-Things get a bit more complicated once we attempt to use some sort of edge-detection heuristic in order to smooth only those regions in the image which are homogenous in colour, and preserve sharpness in the contours. A common approach here is to iteratively smooth the image, re-calculating the heuristic at every step. 
-
-TODO explain parallelisation by way of splitting the image into blocks, how to figure out the best block size analytically (take into account processing time, HDFS block size), overlap size etc.
-
-Description of different ways the MapReduce method has been used in conjunction with image processing libraries. Also some use cases.
+%Description of different ways the MapReduce method has been used in conjunction with image processing libraries. Also some use cases.
 
 %\chapter{Details of methodology}
 %Descriptions on what was implemented, how it was implemented, problems encountered, and what has been done to solve these problems. If there were unsolvable problems, then how do these limit the applicability of the methodology in the real world and how to work around these limitations.
@@ -334,7 +331,7 @@ In this chapter I will describe two example use cases inspired by real-world ima
 
 \section{Processing a large image using a local non-iterative algorithm}
 
-In this section, I will describe a practical application of distributed image processing with MapReduce in using the algorithm described by Chaudhury et al. in "Fast O(1) bilateral filtering using trigonometric range kernels" \cite{chaudhury2011fast}. While a thorough explanation of the algorithm is not the focus of this thesis, in the following sections I will present a basic description of the naive bilateral filter algorithm.
+In this section, I will describe a practical application of distributed image processing with MapReduce in using the algorithm described by Chaudhury et al. in "Fast O(1) bilateral filtering using trigonometric range kernels" \cite{chaudhury2011fast}. Although a thorough explanation of the algorithm is not the focus of this thesis, in the following sections I will present a basic description of the naive bilateral filter algorithm.
 
 \subsection{Description of the data and use case}
 
@@ -361,7 +358,7 @@ As already briefly mentioned in the introduction of this work, the image in ques
 
 \subsection{Bilateral Filter}
 
-In the context of this thesis, I will refer to the bilateral filter as a smoothing filter that attempts to preserve edges while reducing noise in the image. It has previously been described by Aurich and Weule, Tomasi and Manduchi, and Smith and Brady \cite{aurich1995non,smith1997susan,tomasi1998bilateral}. This section will describe both the naive and optimised implementations with regard to performance and resource requirements and provide a brief overview of it's common uses. The following descriptions are adapted from course notes by Paris et al. \cite{bf_course}. In the interests of simplicity and also due to differences between real-world implementations of these algorithms with regard to processing images with more than one color channel, the formulations here will apply only to images with a single number as the pixel value (i.e. monochrome images).
+In the context of this thesis, I will refer to the bilateral filter as a smoothing filter that attempts to preserve edges while reducing noise in the image. It has previously been described by Aurich and Weule, Tomasi and Manduchi, and Smith and Brady \cite{aurich1995non,smith1997susan,tomasi1998bilateral}. This section will describe both the naive and optimised implementations with regard to performance and resource requirements and provide a brief overview of it's common uses. The following descriptions are adapted from course notes by Paris et al. \cite{bf_course}. In the interests of simplicity and also due to differences between real-world implementations of these algorithms with regard to processing images with more than one color channel, the formulations here will apply only to images with a single number as the pixel value (i.e. monochrome images). In general, however, it can be assumed that given a multichannel image, the algorithm will simply process each channel separately.
 
 \subsubsection{Naive bilateral filter algorithm}
 
@@ -399,7 +396,12 @@ Description of the bilateral filter algorithm, it's applications and details abo
 
 \subsection{Performance}
 
-In order to measure the One of the main issues with regard to measuring the performance of the FBF algorithm was comparing the results of the sequential version to the distributed MapReduce one.
+One of the main issues with regard to measuring the performance of the FBF algorithm was comparing the results of the sequential version to the distributed MapReduce one.
+
+\subsection{Technologies used}
+
+\subsubsection{ImageJ}
+For processing images while working on the practical part of this thesis, I used the ImageJ library. It is a freely available image processing application written in Java and developed by the National Institutes of Health \cite{imagej}. It supports the processing and analysis of a wide variety of image types (8-, 16-, 32-bit RGB/black \& white images) and many commonly used image file formats such as PNG, TIFF and JPEG.
 
 \section{Processing a large data set of regular images}
 
@@ -407,7 +409,7 @@ This section deals with the second use case scenario in analysing the use of Map
 
 \subsection{Description of the data and possible use case}
 
-The data set consists of 40326 JPEG encoded images (totalling at about 308GB) taken across the span of 9 years at the Portus archaeological excavation site near Rome, Italy \cite{portusproject}. It is somewhat structured and some images are also tagged with meta-data using folder structures. However the structuring is incomplete, evidenced by duplicates and missing meta-data (which currently has to be manually added). The motivation behind applying distributed image processing on this data set is to find out whether it is possible to speed up the structuring process and extract some meta-data with minimal human interference.
+The data set consists of 48675 JPEG encoded images (totalling at about 308GB) taken across the span of 9 years at the Portus archaeological excavation site near Rome, Italy \cite{portusproject}. It is somewhat structured and some images are also tagged with meta-data using folder structures. However the structuring is incomplete, evidenced by duplicates and missing meta-data (which currently has to be manually added). The motivation behind applying distributed image processing on this data set is to find out whether it is possible to speed up the structuring process and extract some meta-data with minimal human interference.
 
 The downside of using this data set to illustrate the analysis of many small images using MapReduce is that since there is no ideally structured version of it to compare to, all efficiency statistics will be purely subjective. However the intent of this work is not to describe an effective meta-data extraction method, but rather analyse the suitability of MapReduce for this sort of task and discuss the issues (both solved and unsolved) encountered.
 
@@ -456,6 +458,8 @@ Metadata-extractor \cite{metadataextractor}
 \chapter{Overview and discussion}
 
 This thesis does blabla and provides blabla with regard to MapReduce. 
+
+TODO for iterative algorithms, Twister HaLoop or Spark may be more usable
 
 \clearpage
 \addcontentsline{toc}{chapter}{Bibliography}
