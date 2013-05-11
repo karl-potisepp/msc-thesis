@@ -237,9 +237,10 @@ Since the framework already comes with some basic implementations for all these 
 
 One of the integral parts of a Hadoop cluster is the Hadoop Distributed File System (HDFS). Inspired by the Google File System, it's purpose is to provide a fault-tolerant storage structure capable of holding large amounts of data, allow for fast access of said data, and provide a way for MapReduce to perform computations on the same location as the data \cite{ghemawat2003google,borthakur2007hadoop}. 
 
-An important aspect of HDFS with regard to image processing is it's approach in storing files in blocks. Namely, while the block size of a regular file system - such as ext3 - is 1 to 8 kilobytes depending on the configuration, with HDFS, the default is 64 megabytes \cite{ext3}. This is because the file system is geared towards storing very large files, and a larger block size ensures that storage of meta-data such as read/write permissions and physical locations of individual blocks does not create any significant overhead. There are many other reasons for this design that have been explained thoroughly in works that I have referred to above. Block size is important with regard to processing images, since by default, both Map and Reduce functions receive one block's worth of Key-Value pairs as input. If an image is too big to fit within one block, it means that processing is delayed until the program retrieves the block(s) necessary to assemble all of the image, unless the algorithm is somehow equipped to process a partial image, which is unlikely both in the case of raw files and compressed formats such as JPEG or PNG. Therefore, in order to ensure optimal performance, images should fit inside the HDFS block size. This is not a problem with most regular images, as it is easily possible to configure the cluster for a block size of even 128 megabytes and more, however increasing this parameter past a certain point may not have the desired effects. Also, as discussed before, processing very large images sets considerable memory requirements to the computers. For these reasons, splitting large images into manageable parts is the best solution.
+An important aspect of HDFS with regard to image processing is it's approach in storing files in blocks. Namely, while the block size of a regular file system - such as ext3 - is 1 to 8 kilobytes depending on the configuration, with HDFS, the default is 64 megabytes \cite{ext3}. There are two reasons for this design: as the blocks are written to physical storage in a contiguous manner, they can also be read with minimal disk seeking times, and because the file system is geared towards storing very large files, a larger block size ensures that storage of meta-data such as read/write permissions and physical locations of individual blocks creates less overhead. 
+Block size is somewhat important with regard to processing images, since by default, both Map and Reduce functions receive one block's worth of Key-Value pairs as input. If an image is too big to fit within one block, it means that processing is delayed until the program retrieves the block(s) necessary to assemble all of the image, unless the algorithm is somehow equipped to process a partial image, which is unlikely both in the case of raw files and compressed formats such as JPEG or PNG. Therefore, in order to ensure optimal performance, images should fit inside the HDFS block size. This is not a problem with most regular images, as it is easily possible to configure the cluster with a block size of even 128 megabytes or more, however increasing this parameter past a certain point may not have the desired effects. Also, as discussed before, processing very large images sets considerable memory requirements to the computers. For these reasons, splitting large images into manageable parts is the best solution.
 
-Most results presented in this thesis were attained with Hadoop version 0.20.2. While - at the time of writing this - there are several more current stable releases available, this choice was made because of the need to analyse the log files of completed MapReduce jobs using the Starfish Log Analyzer, developed by Herodotou et al. \cite{herodotou2011starfish}. To find out whether there are any drastic changes in performance in newer versions of Hadoop, some tests were also run with version 1.0.3, however no significant difference was found.
+Most results presented in this thesis were attained with Hadoop version 0.20.2. While - at the time of writing this - there are several more current stable releases available, this choice was made because of the need to analyse the log files of completed MapReduce jobs using the Starfish Log Analyzer, developed by Herodotou et al. \cite{herodotou2011starfish}. To find out whether there are any drastic changes in performance in newer versions of Hadoop, some tests were also run with version 1.0.3, however no significant improvement was found.
 
 \section{Image processing}
 
@@ -327,7 +328,119 @@ TODO also examples of local iterative processing and non-local (iterative) proce
 
 \chapter{Image processing with MapReduce in practice}
 
-In this chapter I will describe two example use cases inspired by real-world image processing problems. In the first case, we are dealing with the scenario of running a local non-iterative algorithm on a 6.99 gigapixel image, and in the second, I talk about the application of a more complex pipeline of meta-data extraction, object- and optical character recognition on a photography data set roughly 300 gigabytes in size.
+In this chapter, I will describe two example use cases inspired by real-world image processing problems. The first one deals with the application of an image processing pipeline geared towards object and text recognition on a photography dataset of roughly 265 gigabytes. In the second scenario, I describe running a local non-iterative algorithm on a 6.99 gigapixel image. In essence, these examples cover both general cases of large scale image processing: a data-set of regular images too big to process on a single computer, and an image with dimensions great enough to warrant distributed processing.
+Since this thesis is aimed towards exploring the feasibility of distributed image processing using MapReduce, it should be noted the practical examples presented in the following text are meant to be a proof of concept, not robust and effective solutions for clearly defined problems. The following should be treated more as a broad description as to how to approach solving these sorts of problems using MapReduce and Hadoop.
+
+\section{Processing a large data set of regular images}
+
+In this section, we look at the subject of distributed image processing in the example case of a large data-set of regular-sized images. The data set consists of 48675 JPEG encoded images (totalling at about 265GB) taken across the span of 9 years at the Portus archaeological excavation site near Rome, Italy \cite{portusproject}. As the purpose of this data set is to provide a visual documentation of the activities of the project as thoroughly as possible, the subject matter of the photographs is rather varied: a random selection of images would probably contain examples of aerial photos, pictures of locations untouched by excavations and of areas already dug up and processed, among other things. In order to be able to use this in further work, it is necessary to organise it into a more logical structure and equip individual images with meta-data which can later be used to build indexes and allow searching. However, as the size of data grows, so does the amount of work necessary to file everything where it belongs. 
+Since traditionally there has been no easily-adaptable automatic solution for doing this, the task of analysis and classification of all this information had fallen on humans. On the other hand, taking into account the advances in image processing techniques and general increase in available computing power, there may be ways to speed up this sort of processing, especially with regard to things that have in recent times been shown to be possible using computers, such as object and text recognition. From the perspective of a human, these are often trivial and repetitive tasks, and therefore should be automated. In the following, I will provide some examples of these images and outline some of the ways data- and image processing technologies could help solve these issues.
+
+In order to proceed into specific approaches of extracting meaningful data, I will first briefly describe what could realistically be achieved with processing this data-set. 
+
+\subsubsection{Classification by Exif meta-data and folder structure}
+
+The first and probably the easiest way to approach the task of classifying and structuring a data set of this size is by taking advantage of all the information already present in the form of meta-data defined by the exchangeable image file format standard (Exif) \cite{japan2002jeita}. A simple example -already implemented in many pieces of photo management software - is grouping photos according to the creation date, which is a common meta-data tag. Moving further, it is a reasonable assumption that the initial step of sorting images has already taken place when the photographer moved the photos from the internal memory of the camera to a folder on their computer. This means that even if only one image in a given subfolder of the dataset has some specific tag-value pair (for instance tying the images to some specific geographic location), it could easily be added to all the other images in that subfolder, potentially reducing the workload of a human, who then has to only tag one image of a given group.
+However, this only solves part of the problem, because we are also interested in grouping photos by geographic location and - ultimately - content. As the pictures are taken with cameras that do not possess a receiver that allows them to automatically tag images with geospatial coordinates, nor can they provide any useful description of photo content aside from the raw data itself, this information has to be extracted by either automatic or manual processing of image data. 
+
+\subsubsection{Information extraction by object and text recognition}
+
+Extracting Exif meta-data and making assumptions about the classification of images based on their location in the file system is connected with image processing only because the Exif standard deals with image files - this processing does not take the actual pixel data into account. However, as seen in figures \ref{archaeology_ex1} and \ref{archaeology_ex2}, there is definitely some information stored within this data that could be feasibly extracted programmatically. 
+
+\begin{center}
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.25]{archaeology_ex1.eps} %TODO render with PDF
+\caption{A photo of a roman coin. Images like this are good candidates for optical text recognition, because the text is clearly recognisable.}
+\label{archaeology_ex1}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.5]{archaeology_ex2.eps} %TODO render with PDF
+\caption{A photo of an excavation site with a chalkboard and measuring artifacts. Extracting useful information from pictures like this is more difficult than is the case in figure \ref{archaeology_ex1}, because of recognition of handwritten text is complicated. }
+\label{archaeology_ex2}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.3]{archaeology_ex3.eps} %TODO render with PDF
+\caption{A photo of random scenery. Extracting any useful information from here is practically impossible at the current state of technology. }
+\label{archaeology_ex3}
+\end{figure}
+\end{center}
+
+
+ %It is somewhat structured and some images are also tagged with meta-data using folder structures. However, the structuring is incomplete, as evidenced by many duplicate images and missing meta-data (which currently has to be manually added). The motivation behind applying distributed image processing on this data set is to find out whether it is possible to speed up the structuring process and extract some meta-data with minimal human interference.
+
+%The downside of using this data set to illustrate the analysis of many small images using MapReduce is that since there is no ideally structured version of it to compare to, all efficiency statistics will be purely subjective. However the intent of this work is not to describe an effective meta-data extraction method, but rather analyse the suitability of MapReduce for this sort of task and discuss the issues (both solved and unsolved) encountered.
+
+%TODO explain structure more
+
+\subsubsection{Processing pipeline} 
+
+\begin{enumerate}
+\item The \textit{find\_obj} performs object recognition and returns a list of matching pixel coordinates in the target image. In case of several pixels, the average is calculated. If no pixels were returned, halt processing.
+\item Thresholding and labeling on the target image in order to convert it to a list of regions.
+\item Erosion to eliminate regions that are too small.
+\item Dilatation to bring the regions that remain back to their original size.
+\item Calculate bounding boxes for all the remaining regions.
+\item Based on the pixel coordinates from step 1, select the region that is located at these coordinates. If there is no region, halt processing.
+\item The top left and bottom right pixel coordinate of the selected region specifies the area to extract from the target image.
+\item Perform OCR using Tesseract on the cropped part and write results into a text file.
+\end{enumerate}
+
+\begin{center}
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.3]{box.eps} %TODO render with PDF
+\caption{TODO description}
+\label{box}
+\end{figure}
+\end{center}
+
+
+
+\subsection{Problem statement}
+
+Extracting meaningful data from images is a non-trivial task. OCR, object recognition, identifying similar images, measuring image quality.
+
+Problem - how to feed images into MapReduce when the folder structure is complex? Hadoop does not provide a way for recursively going through the input folder and starts a new map task for every folder which creates unnecessary overhead. Creating a large SequenceFile to store all file data along with original full paths is not an option because it is too resource-intensive and the resulting file may be difficult to store. Flattening the structure and writing original paths into image meta-data also requires too much processing (reading and writing all files in the data set). Ignoring the path info altogether is not an option, because it provides a structuring/grouping of the data not encoded into meta-data.
+
+Problem - since images come from many different makes and models of cameras, and there is no easy way in distinguishing between meta-data that is useful in the context of this task and meta-data that encodes some cryptic information that is only used by some proprietary software (for example serial numbers and firmware version numbers) or simply the parameters of the camera at the time of taking the photo (such as Base ISO, Auto Focus settings etc.). While some of the latter meta-data may be useful when searching for similar images (for instance, one can group together photos taken with flash), there is no way of specifying which meta-data key refers to the correct value without first looking through a representative sampling (or even all) of the images and manually filtering out the meta-data keys to group together. (TODO maybe explain this better)
+
+TODO explain hadoop small file problem
+http://amilaparanawithana.blogspot.com/2012/06/small-file-problem-in-hadoop.html
+http://blog.cloudera.com/blog/2009/02/the-small-files-problem/
+
+\subsection{Performance}
+
+\subsection{Used technologies}
+
+\subsubsection{OpenCV}
+
+OpenCV \cite{opencv}
+
+\subsubsection{Tesseract}
+
+Tesseract \cite{tesseract}
+
+\subsubsection{Pandore}
+
+Pandore \cite{pandore}
+
+\subsubsection{ImageMagick}
+
+ImageMagick \cite{imagemagick}
+
+\subsubsection{Metadata-extractor}
+
+Metadata-extractor \cite{metadataextractor}
+
 
 \section{Processing a large image using a local non-iterative algorithm}
 
@@ -335,7 +448,7 @@ In this section, I will describe a practical application of distributed image pr
 
 \subsection{Description of the data and use case}
 
-As already briefly mentioned in the introduction of this work, the image in question is a photograph taken by a microscope, with a width and height of 86273 and 81025, respectively. The subject matter is a group of cells, and the objective of image processing in this case is to somehow programmatically count the number of nuclei in the image. One probable step in such an image processing computation is to smooth colours in the image while accenting the edges in order to allow for more easier detection of nuclei. The fast O(1) bilateral filter algorithm is a local non-iterative way of accomplishing this, and therefore a good candidate for applying on the image even when it has been partitioned in order to fit into memory of all the nodes in the Hadoop cluster.
+As already briefly mentioned in the introduction of this work, the image in question is a photograph taken by a microscope, with a width and height of 86273 and 81025 pixels, respectively. The subject matter is a group of cells, and the objective of image processing in this case is to somehow programmatically count the number of nuclei in the image. One probable step in such an image processing computation is to smooth colours in the image while accenting the edges in order to allow for more easier detection of nuclei. The fast O(1) bilateral filter algorithm is a local non-iterative way of accomplishing this, and therefore a good candidate for applying on the image even when it has been partitioned in order to fit into memory of all the nodes in the Hadoop cluster.
 
 \begin{center}
 \begin{figure}[h]
@@ -403,57 +516,7 @@ One of the main issues with regard to measuring the performance of the FBF algor
 \subsubsection{ImageJ}
 For processing images while working on the practical part of this thesis, I used the ImageJ library. It is a freely available image processing application written in Java and developed by the National Institutes of Health \cite{imagej}. It supports the processing and analysis of a wide variety of image types (8-, 16-, 32-bit RGB/black \& white images) and many commonly used image file formats such as PNG, TIFF and JPEG.
 
-\section{Processing a large data set of regular images}
 
-This section deals with the second use case scenario in analysing the use of MapReduce for image processing. Here, I look at the issues of applying a 
-
-\subsection{Description of the data and possible use case}
-
-The data set consists of 48675 JPEG encoded images (totalling at about 308GB) taken across the span of 9 years at the Portus archaeological excavation site near Rome, Italy \cite{portusproject}. It is somewhat structured and some images are also tagged with meta-data using folder structures. However the structuring is incomplete, evidenced by duplicates and missing meta-data (which currently has to be manually added). The motivation behind applying distributed image processing on this data set is to find out whether it is possible to speed up the structuring process and extract some meta-data with minimal human interference.
-
-The downside of using this data set to illustrate the analysis of many small images using MapReduce is that since there is no ideally structured version of it to compare to, all efficiency statistics will be purely subjective. However the intent of this work is not to describe an effective meta-data extraction method, but rather analyse the suitability of MapReduce for this sort of task and discuss the issues (both solved and unsolved) encountered.
-
-TODO explain structure more
-
-\subsubsection{Processing pipeline} 
-
-In the following paragraphs, I will describe the proof-of-concept object and text recognition pipeline I used to benchmark the 
-
-\subsection{Problem statement}
-
-Extracting meaningful data from images is a non-trivial task. OCR, object recognition, identifying similar images, measuring image quality.
-
-Problem - how to feed images into MapReduce when the folder structure is complex? Hadoop does not provide a way for recursively going through the input folder and starts a new map task for every folder which creates unnecessary overhead. Creating a large SequenceFile to store all file data along with original full paths is not an option because it is too resource-intensive and the resulting file may be difficult to store. Flattening the structure and writing original paths into image meta-data also requires too much processing (reading and writing all files in the data set). Ignoring the path info altogether is not an option, because it provides a structuring/grouping of the data not encoded into meta-data.
-
-Problem - since images come from many different makes and models of cameras, and there is no easy way in distinguishing between meta-data that is useful in the context of this task and meta-data that encodes some cryptic information that is only used by some proprietary software (for example serial numbers and firmware version numbers) or simply the parameters of the camera at the time of taking the photo (such as Base ISO, Auto Focus settings etc.). While some of the latter meta-data may be useful when searching for similar images (for instance, one can group together photos taken with flash), there is no way of specifying which meta-data key refers to the correct value without first looking through a representative sampling (or even all) of the images and manually filtering out the meta-data keys to group together. (TODO maybe explain this better)
-
-TODO explain hadoop small file problem
-http://amilaparanawithana.blogspot.com/2012/06/small-file-problem-in-hadoop.html
-http://blog.cloudera.com/blog/2009/02/the-small-files-problem/
-
-\subsection{Performance}
-
-\subsection{Used technologies}
-
-\subsubsection{OpenCV}
-
-OpenCV \cite{opencv}
-
-\subsubsection{Tesseract}
-
-Tesseract \cite{tesseract}
-
-\subsubsection{Pandore}
-
-Pandore \cite{pandore}
-
-\subsubsection{ImageMagick}
-
-ImageMagick \cite{imagemagick}
-
-\subsubsection{Metadata-extractor}
-
-Metadata-extractor \cite{metadataextractor}
 
 \chapter{Overview and discussion}
 
