@@ -69,7 +69,7 @@ Along with the development of information technology, a constant stream of new a
 
 Due to the increasing popularity of personal computers, smart televisions, smartphones, tablets and other devices carrying a full-fledged operating system such as Android, iOS or Windows 8, and due to the capability of these devices to act as producers of many kinds of content instead of being passive receivers (like radio and television, for example), there is a need to be able to process that content. Photos need to be resized, cropped and cleaned up, and recorded sound and video need to be shaped into a coherent whole with the aid of editing software. These procedures however may not be something that is best tackled on the same device that was used for recording, because of limiting factors in processing power, storage space and - in some cases - battery life. However with the widespread availability of wireless internet or high-throughput cell phone networks, any of the aforementioned devices can simply upload their data to a more capable computer in order to do necessary processing. 
 
-As in many cases the recorded media will be consumed using a different device (for example, viewing holiday photos taken with your smartphone on your computer or smart TV), it can be argued that both the steps of transferring media from the recording device and processing it are inevitable anyway. Facebook and YouTube both provide a good example of this scenario: the user can upload their media in more or less in an unprocessed format and the frameworks take care of resizing and re-encoding the media so that it can be consumed by users. However, since these services are very popular, as a consequence the amounts of data that is needed to process are also huge. For example, 72 hours of video data is uploaded to YouTube every minute \cite{youtube_stats}. Even without going into details of video compression or the processing pipelines involved, it is easy to see how even a day's worth of uploads (103 680 hours) quickly becomes unfeasible to compute without resorting to distributed computing.
+In many cases the recorded media will be consumed using a different device (for example, viewing holiday photos taken with your smartphone on your computer or smart TV). Therefore, it can be argued that both the steps of transferring media from the recording device and processing it are inevitable anyway. Facebook and YouTube both provide a good example of this scenario: the user can upload their media in more or less in an unprocessed format and the frameworks take care of resizing and re-encoding the media so that it can be consumed by users. However, since these services are very popular, as a consequence the amounts of data that is needed to process are also huge. For example, 72 hours of video data is uploaded to YouTube every minute \cite{youtube_stats}. Even without going into details of video compression or the processing pipelines involved, it is easy to see how even a day's worth of uploads (103 680 hours) quickly becomes unfeasible to compute without resorting to distributed computing.
 
 For solving processing tasks involving data of this scale, engineers at Google (the parent company of YouTube) designed the MapReduce model of distributed computing, of which Apache Hadoop is the most popular open source implementation. It is well known that using the MapReduce model is a good solution for many problems, however judging from the work done in the field of distributed computing with regard to image processing, the suitability of the model for this application not very well known. In this thesis I will describe the MapReduce model, it's implementation in the form of Hadoop, and explore the feasibility of using this technology for doing large scale image processing.
 
@@ -121,7 +121,7 @@ Local, with regard to image processing, denotes that the computation is performe
 \end{center}
 \end{figure}
 
-The distinction between iterative and non-iterative algorithms is simpler: a non-iterative algorithm only processes the image a constant number of times - depending on the algorithm, up to five or six - to achieve the desired effect, whereas an iterative algorithm requires multiple passes, and often the output image of a previous pass becomes the input of the next pass. Observing the data requirements for what simply seems an iterative local algorithm, it is easy to see that even though the resulting values for pixels in the first pass only depend on their close neighborhood, from the second iteration on, those adjacent pixels have had their values adjusted according to their neighborhoods, which in turn are changed according to their neighbors and so on (see figure \ref{fig_local_iterative}). While the extent of this influence depends on the algorithm in question, the algorithm itself is - strictly speaking - non-local.
+The distinction between iterative and non-iterative algorithms is simpler: a non-iterative algorithm only processes the image a small, constant number of times to achieve the desired effect, whereas an iterative algorithm requires multiple passes, and often the output image of a previous pass becomes the input of the next pass. Observing the data requirements for what simply seems an iterative local algorithm, it is easy to see that even though the resulting values for pixels in the first pass only depend on their close neighborhood, from the second iteration on, those adjacent pixels have had their values adjusted according to their neighborhoods, which in turn are changed according to their neighbors and so on (see figure \ref{fig_local_iterative}). While the extent of this influence depends on the algorithm in question, the algorithm itself is - strictly speaking - non-local.
 
 \begin{figure}[h]
 \begin{center}
@@ -134,9 +134,9 @@ The distinction between iterative and non-iterative algorithms is simpler: a non
 
 Therefore, we can establish four classes of image processing problems: local, non-local, iterative local and iterative non-local. We can now look back at the example cases brought up previously and see what issues would arise if we attempted to parallelise local and non-local algorithms on these images.
 
-In the first case, it immediately becomes obvious that parallelising a non-local type of algorithm is going to be a non-trivial task, as we lack even the ability to store it in memory. Even when assuming that the algorithm can continue to function if the input image is split to pieces, if communication is also required between the computers working on separate pieces, then there is a good chance that network speed will become a bottleneck and slow down the computation.
+In the first case of processing a 6.99 gigapixel image, it immediately becomes obvious that parallelising a non-local type of algorithm is going to be a non-trivial task, as we lack even the ability to store it in memory on regular computers. Even when assuming that the algorithm can continue to function if the input image is split to pieces, if communication is also required between the computers working on separate pieces, then there is a good chance that network speed will become a bottleneck and slow down the computation.
 
-The second case, however, is far more suited for processing with the MapReduce model. Even though the total size of the data several times bigger than in the first case, since it consists of comparatively small images which easily fit into memory even when taking any algorithm-specific overhead into account. Moreover, because we do not have to split any images into pieces or worry about communication between worker computers, classification of the algorithms into the aforementioned four groups does not matter. Therefore, looking at the issues with regard to analysing this sort of data lets us make conclusions that apply to a wider range of problems. 
+The second case, however, is far more suited for processing with the MapReduce model. Even though the total size of the data is several times bigger than in the previous case, since it consists of comparatively small images which easily fit into memory even when taking any algorithm-specific overhead into account. Moreover, because we do not have to split any images into pieces or worry about communication between worker computers, classification of the algorithms into the aforementioned four groups does not matter. Therefore, looking at the issues with regard to analysing this sort of data lets us make conclusions that apply to a wider range of problems. 
 
 At this point it is important to note that we have so far silently assumed that all the algorithms we classify only require one image as an input. Speaking from the perspective of distributed processing, this means we assume that the algorithm only requires data from one image at a time. For example, with this clause we exclude any processing that needs to compare two or more images with each other from this discussion. The reason behind this will become clear further on in this text, as it is somewhat related to the implementation of the MapReduce model in Apache Hadoop and our approach to parallelising image processing tasks by dividing images into manageable pieces. Briefly and informally, it can be summarised as follows: if an algorithm requires access to more images than the local storage of the computer allows, communication between computers is needed. However, since a MapReduce calculation has only one step where the computing nodes exchange information, the only way to satisfy this need without resorting to another processing model is to run the MapReduce calculations themselves iteratively (note that when speaking about iterative image processing algorithms, I mean that all the iterations will be done within one MapReduce calculation). This, in turn, has been shown by Satish Srirama et al. to be very slow in actual performance, especially as the number of iterations increases \cite{srirama2012adapting}.
 
@@ -154,7 +154,7 @@ In this chapter I will describe and summarise relevant work that has been done i
 
 \section{Relevant work}
 
-In order to gauge the relevance of addressing the problems brought up in the previous chapter, I will provide in the following text a brief overview of previous work sharing the themes of image processing and distributed computing in no particular order. 
+In order to gauge the relevance of addressing the problems brought up in the previous chapter, I will provide a brief overview of previous work sharing the themes of image processing and distributed computing in no particular order. 
 
 In Web-Scale Computer Vision using MapReduce for Multimedia Data Mining \cite{White:2010:WCV:1814245.1814254}, Brandyn White et al. present a case study of classifying and clustering billions of regular images using MapReduce. No mention is made of average image dimensions or any issues with not being able to process certain images because of memory limitations. However, a way of pre-processing images for use in a sliding-window approach for object recognition is described. Therefore one can assume that in this approach, the size of images is not an issue, because the pre-processing phase cuts everything into a manageable size. The question still remains whether a sliding window approach is capable of recognizing any objects present in the image that do not easily fit into one analysis window, and whether the resource requirements for image classification and image processing are significantly different or not.
 
@@ -200,11 +200,11 @@ It is important to note here that the MapReduce model simply specifies a very ge
 \end{center}
 \end{figure}
 
-An important aspect of a MapReduce computation is also communication. Since every Map and Reduce task is designed to operate independently, communication between instances of the algorithm is not possible, except in the step where output from the Map phase is sent to Reduce. Here, all Key-Value pairs are grouped together by Key and the Reduce function can then process all Values together. However, short of starting another MapReduce computation whose input is the previous one's output (essentially making one MapReduce computation correspond to one iteration of the algorithm), there is no way to achieve communication between any given pair of Map or Reduce tasks. It trivial to see that if the start-up time of a MapReduce computation is significant, certain algorithms that need to take advantage of this sort of communication will suffer a decrease in performance.
+An important aspect of a MapReduce computation is also communication. Since every Map and Reduce task is designed to operate independently, communication between instances of the algorithm is not possible, except in the step where output from the Map phase is sent to Reduce. Here, all Key-Value pairs are grouped together by Key and the Reduce function can then process all Values together. However, short of starting another MapReduce computation whose input is the previous one's output (essentially making one MapReduce computation correspond to one iteration of the algorithm), there is no way to achieve communication between any given pair of Map or Reduce tasks. It is easy to see that if the start-up time of a MapReduce computation is significant, certain algorithms that need to take advantage of this sort of communication will suffer a decrease in performance.
 
-Let us now analyse the adaptation of algorithms to the MapReduce model with regard to the four classes of image processing algorithms described earlier in this text. First, we see it is easy to adapt local non-iterative computations to this model. To do this, we simply have to define our Input step so that each Key-Value pair corresponds to one image (it can also be a part of a larger image). Then, the Map phase applies the algorithm, and results are returned by the Output step. Here, the Reduce step is defined as an identity function returning it's own input. The case is similar with local iterative algorithms, although - as discussed before - the approach of partitioning large images into manageable blocks will affect the results of the algorithm and may therefore be inapplicable. However, in some cases, this loss may be outweighed by gains in performance when compared to sequential processing.
+Let us now analyse the adaptation of algorithms to the MapReduce model with regard to the four classes of image processing algorithms described earlier in this text. First, we see it is easy to adapt local non-iterative computations to this model. To do this, we simply define our Input step so that each image is represented by one Key-Value pair (in the case of large images, we split them to pieces beforehand). Then, the Map phase applies the algorithm, and results are returned by the Output step. Here, the Reduce step is defined as an identity function, meaning that it returns it's own input. The case is similar with local iterative algorithms, although - as discussed before - the approach of partitioning large images into manageable blocks will affect the results of the algorithm and may therefore be inapplicable. However, in some cases, this loss may be outweighed by gains in performance when compared to sequential processing.
 
-Adapting both iterative and non-iterative non-local image processing algorithms to MapReduce is also straightforward when the images in question are small enough fit into memory. With bigger images, however, the issue becomes more complex, as this is the only scenario in which two processing tasks working on different pieces of the same image would need to communicate with each other. Due to these characteristics, these algorithms may require several MapReduce computations to complete and - as described above - can therefore be unsuitable for adaptation to the model, unless drastic changes are made. In this thesis, I do not present any such algorithms.
+Adapting both iterative and non-iterative non-local image processing algorithms to MapReduce is also straightforward when the images in question are small enough fit into memory. With bigger images, however, the issue becomes more complex, as this is the only scenario in which two processing tasks working on different pieces of the same image would need to communicate with each other. Due to these characteristics, these algorithms may require several MapReduce computations to complete and - as described above - can therefore be unsuitable for adaptation to the model, unless drastic changes are made. Due to these reasons and technical limitations of the Hadoop framework with regard to this sort of algorithms, I do not consider any such algorithms in this work.
 
 \subsection{Apache Hadoop}
 Hadoop is an open-source framework for distributed computing, written in Java and developed by the Apache Foundation and inspired by Google's MapReduce \cite{white2012hadoop}. It has been in development since 2005 and - at the time of writing this work - is one of the most popular freely available applications of it's kind. As the framework is already being used for large-scale data analysis tasks by many companies such as Facebook and Yahoo, and at the same time is easily adapted for use with any kind of hardware, ranging from a single computer to large data center, it is the best candidate for image processing on the MapReduce model. In the following, I will attempt to describe the basics of Hadoop's implementation in general and with regard to image processing. Since much of this topic is also covered in the Yahoo! Hadoop Tutorial, I am not going to explain the subjects of cluster set-up and writing MapReduce programs in much detail.
@@ -215,8 +215,8 @@ A typical Hadoop cluster consists of a master node and any number of computing n
 \item The user uploads input data to the Hadoop Distributed File System (HDFS), which in turn distributes and stores it on the computing nodes.
 \item The user starts the job by specifying the MapReduce program to execute along with input-output paths and other parameters.
 \item The master node sends a copy of the program along with it's parameters to every computing node and starts the job.
-\item Computing nodes start the Map phase first by processing data on their local storage, moving on to data on other nodes if necessary and possible (this decision is up to the master node).
-\item After all Map tasks are finished, their output is sorted by their Keys, and sent to appropriate Reduce tasks.
+\item Computing nodes start the Map phase first by processing data on their local storage, fetching more data from other nodes if necessary and possible (this decision is up to the master node).
+\item After all Map tasks are finished, their output is sorted in a way, that for every distinct Key, a Reduce task processes all the pairs with that Key.
 \item Once the Reduce phase is finished and it's output has been written back to HDFS, the user then retrieves the resulting data.
 \end{enumerate}
 
@@ -231,85 +231,16 @@ Hadoop provides a fairly straightforward implementation of the MapReduce model. 
 \item A \textit{OutputFormat} class, which takes Key-Value pairs from the \textit{Reducer} and writes output to disk.
 \end{itemize} 
 
-Since the framework already comes with some basic implementations for all these classes, in very trivial cases, the programmer will just have to pick the ones that they need, and - assuming the Hadoop cluster is already set up - package the code into a Java Archive file (.jar), upload it to the master node and start the job. Normally this is not the case, and the processing task requires the user to write custom classes to achieve the desired results. As Hadoop MapReduce jobs are themselves Java programs that can also be run independently (usually for testing purposes) without a previously set up computing cluster, and Hadoop places no restrictions with regard to the use of external libraries, the natural way to writing MapReduce jobs is using the Java programming language. However, the framework also provides a way to use functions written in essentially any language through the use of Hadoop Streaming and Pipes utilities. Furthermore, as demonstrated in the second use case scenario later in this work, the framework can simply be used to fulfill the role of distributing data, balancing loads and executing the scripts that handle the actual processing.
+Since the framework already comes with some basic implementations for all these classes, in very trivial cases, the programmer will just have to pick the ones that they need, and - assuming the Hadoop cluster is already set up - package the code into a Java Archive file (.jar), upload it to the master node and start the job. In reality, the Map and Reduce classes are usually custom-written for the task at hand, whereas customising InputFormat, OutputFormat and other helper classes is only necessary when the data is not readable using the pre-made classes. As Hadoop MapReduce jobs are themselves Java programs that can also be run independently (usually for testing purposes) without a previously set up computing cluster, and Hadoop places no restrictions with regard to the use of external libraries, the natural way to writing MapReduce jobs is using the Java programming language. However, the framework also provides a way to use functions written in essentially any language through the use of Hadoop Streaming and Pipes utilities. Furthermore, as demonstrated in the second use case scenario later in this work, the framework can simply be used to fulfill the role of distributing data, balancing loads and executing the scripts that handle the actual processing.
 
 \subsubsection{Hadoop Distributed File System}
 
 One of the integral parts of a Hadoop cluster is the Hadoop Distributed File System (HDFS). Inspired by the Google File System, it's purpose is to provide a fault-tolerant storage structure capable of holding large amounts of data, allow for fast access of said data, and provide a way for MapReduce to perform computations on the same location as the data \cite{ghemawat2003google,borthakur2007hadoop}. 
 
 An important aspect of HDFS with regard to image processing is it's approach in storing files in blocks. Namely, while the block size of a regular file system - such as ext3 - is 1 to 8 kilobytes depending on the configuration, with HDFS, the default is 64 megabytes \cite{ext3}. There are two reasons for this design: as the blocks are written to physical storage in a contiguous manner, they can also be read with minimal disk seeking times, and because the file system is geared towards storing very large files, a larger block size ensures that storage of meta-data such as read/write permissions and physical locations of individual blocks creates less overhead. 
-Block size is somewhat important with regard to processing images, since by default, both Map and Reduce functions receive one block's worth of Key-Value pairs as input. If an image is too big to fit within one block, it means that processing is delayed until the program retrieves the block(s) necessary to assemble all of the image, unless the algorithm is somehow equipped to process a partial image, which is unlikely both in the case of raw files and compressed formats such as JPEG or PNG. Therefore, in order to ensure optimal performance, images should fit inside the HDFS block size. This is not a problem with most regular images, as it is easily possible to configure the cluster with a block size of even 128 megabytes or more, however increasing this parameter past a certain point may not have the desired effects. Also, as discussed before, processing very large images sets considerable memory requirements to the computers. For these reasons, splitting large images into manageable parts is the best solution.
+Block size is somewhat important with regard to processing images, since if an image that is too big is uploaded to HDFS, there is no guarantee that all of it's blocks would be stored in the same physical location. Since a Map or Reduce task would then have to retrieve all of it's blocks before processing, the idea behind executing tasks that are local with regard to the data is lost: the speed of reading input data now depends on the network. Therefore, in order to ensure optimal processing speed, images should fit inside the HDFS block size. This is not a problem with most regular images, as it is easily possible to configure the cluster with a block size of even 128 megabytes or more, however increasing this parameter past a certain point may not have the desired effects. Also, as discussed before, processing very large images sets considerable memory requirements to the computers. For these reasons, splitting large images into manageable parts is the best solution.
 
 Most results presented in this thesis were attained with Hadoop version 0.20.2. While - at the time of writing this - there are several more current stable releases available, this choice was made because of the need to analyse the log files of completed MapReduce jobs using the Starfish Log Analyzer, developed by Herodotou et al. \cite{herodotou2011starfish}. To find out whether there are any drastic changes in performance in newer versions of Hadoop, some tests were also run with version 1.0.3, however no significant improvement was found.
-
-\section{Image processing}
-
-As already mentioned in the preceding text, in this thesis I will restrict my focus with regard to the field of image processing to two-dimensional color images. The following will not be a description of how images are acquired through the use of scanning or digital cameras, therefore it is assumed here that the reader is familiar with the notions of pixels, 2-dimensional coordinate notation and representing color using red, green and blue values. Therefore I will start with the following formal definition: I consider the image $I$ with width $x$ and height $y$ as a collection of pixels $p$, such that
-
-\begin{center}
-$I = \{ \, p_{i,j} | \, i \in [1,x], \, j \in [1,y] \, \}$, and
-
-$p_{i,j} = (r_{i,j}, g_{i,j}, b_{i,j})$,
-\end{center}
-where $r_{i,j}$, $g_{i,j}$ and $b_{i,j}$ are respectively the red, green and blue values of the pixel at $x$-coordinate $i$ and $y$-coordinate $j$. From this definition it is more or less straightforward to estimate the minimal memory requirements for storing an image with known dimensions when the programming language and data type for storing individual color values is also chosen. Since this thesis deals with Java, and image processing algorithms tend to prefer floating point values (which are 32 bits in Java) in the interests of precision, we can estimate the memory consumption $M$ of an image with dimensions $x$ and $y$ as follows:
-
-\begin{center} 
-$M = x * y * 3 * 32$ bits.
-\end{center}
-
-As image processing algorithms tend to operate on uncompressed images, using this sort of calculations provides a way of estimating the memory requirements from the time complexity of the processing tasks. Therefore the size of compressed the image file (for example JPEG or PNG) is only very loosely correlated with the time it takes to process that image, as the efficiency of compression algorithms depends on the information content of the image itself, whereas the estimation method described above only takes into account the spatial dimensions of the image.
-
-\subsection{Gaussian blur}
-
-One of the simplest local algorithms in image processing is Gaussian blur (also known as Gaussian smoothing). It's most common application is noise reduction. An example can be seen in figure \ref{fig_gaussian_blur}. The bilateral filter algorithm described later on in this thesis is an improvement of Gaussian blur with regard to edge-preservation capability. The following is a formal description of the algorithm:
-
-\begin{center}
-\begin{algorithm}[h]
-	\KwData{$I$ - input image, $O$ - output image, $\sigma$ - filter range, $h$ - height of the input image, $w$ - width of the input image}
-	\For{$x = 1, 2, ... w$}{
-		\For{$y = 1, 2, ... h$}{
-			$O(x,y) = 0$
-
-			\For{$x_\sigma = x-\sigma ... x+\sigma$}{
-				\For{$y_\sigma = y-\sigma ... y+\sigma$}{
-					$O(x,y) += I(x_\sigma, y_\sigma)*G_\sigma(\| (x_\sigma, y_\sigma)-(x, y) \|)$
-				}
-			}
-		}
-	}
-\end{algorithm}
-\end{center}
-
-Here, $I(x,y)$ and $O(x,y)$ signify pixels of input and output images at width and height coordinates $x$ and $y$ respectively, $\| (x_\sigma, y_\sigma)-(x, y) \|$ represents the distance between the pixel being processed and the pixel at $(x_\sigma, y_\sigma)$. $G_\sigma(x)$ is the Gaussian function
-
-\begin{center}
-$G_\sigma(x) = \frac{1}{2\pi\sigma^2} \exp(-\frac{x^2}{2\sigma^2})$.
-\end{center}
-
-TODO verify if the above is correct.
-
-Essentially, what happens to each pixel during the course of this algorithm, is that their values are re-calculated as a weighted sum of their neighboring pixels, and $\sigma$ specifies the range of this neighborhood. This is best visualised by thinking of pixels as cells and the image as the table - the $\sigma$-neighborhood of pixel $I(x,y)$ then is the group of cells extending $\sigma$ rows above and below, and $\sigma$ columns before and after the cell in focus (see figure \ref{fig_gaussian_blur}). Due to the characteristics of Gaussian distribution, as the distance $\| (x_\sigma, y_\sigma)-(x, y) \|$ between pixels increases, the weight decreases. This means that pixels further away contribute less to the new value of the pixel currently in focus, and pixels outside the $\sigma$-neighborhood of the pixel do not affect it's value at all. It is important to note here that the actual values of the pixels do not affect the calculations of the weights at all, and the $G_\sigma(x)$ can be pre-calculated as a matrix of weights, bringing the time complexity of the algorithm to $O(n)$, where $n$ is the amount of pixels in the image.
-
-\begin{center}
-\begin{figure}[h]
-\begin{subfigure}{.5\textwidth}
-  \centering
-  \includegraphics[scale=0.3]{Lenna.eps} %TODO render with PDF
-  %\caption{Regular image}
-  %\label{fig:sub1}
-\end{subfigure}%
-\begin{subfigure}{.5\textwidth}
-  \centering
-  \includegraphics[scale=0.3]{Lenna_gaussian_10px.eps} %TODO render with PDF
-  %\caption{A subfigure}
-  %\label{fig:sub2}
-\end{subfigure}
-\caption{An example of Gaussian blur with $\sigma$ = 10 applied to the Lenna test image. Here, the filter is applied to each color channel separately.}
-\label{fig_gaussian_blur}
-\end{figure}
-\end{center}
-
-TODO also examples of local iterative processing and non-local (iterative) processing?
 
 %\section{Image processing and MapReduce}
 
@@ -328,15 +259,15 @@ TODO also examples of local iterative processing and non-local (iterative) proce
 
 \chapter{Image processing with MapReduce in practice}
 
-In this chapter, I will describe two example use cases inspired by real-world image processing problems. The first one deals with the application of an image processing pipeline geared towards object and text recognition on a photography dataset of roughly 265 gigabytes. In the second scenario, I describe running a local non-iterative algorithm on a 6.99 gigapixel image. In essence, these examples cover both general cases of large scale image processing: a data-set of regular images too big to process on a single computer, and an image with dimensions great enough to warrant distributed processing.
+In this chapter, I will describe two example use cases inspired by real-world image processing problems. The first one deals with the application of an image processing pipeline geared towards object and text recognition on a photography data-set. In the second scenario, I describe running a local non-iterative algorithm on a single large image. In essence, these examples cover both general cases of large scale image processing: a data-set of regular images too big to process on a single computer, and an image with dimensions great enough to warrant distributed processing.
 Since this thesis is aimed towards exploring the feasibility of distributed image processing using MapReduce, it should be noted the practical examples presented in the following text are meant to be a proof of concept, not robust and effective solutions for clearly defined problems. The following should be treated more as a broad description as to how to approach solving these sorts of problems using MapReduce and Hadoop.
 
 \section{Processing a large data set of regular images}
 
-In this section, we look at the subject of distributed image processing in the example case of a large data-set of regular-sized images. The data set consists of 48675 JPEG encoded images (totalling at about 265GB) taken across the span of 9 years at the Portus archaeological excavation site near Rome, Italy \cite{portusproject}. As the purpose of this data set is to provide a visual documentation of the activities of the project as thoroughly as possible, the subject matter of the photographs is rather varied: a random selection of images would probably contain examples of aerial photos, pictures of locations untouched by excavations and of areas already dug up and processed, among other things. In order to be able to use this in further work, it is necessary to organise it into a more logical structure and equip individual images with meta-data which can later be used to build indexes and allow searching. However, as the size of data grows, so does the amount of work necessary to file everything where it belongs. 
+In this section, we look at the subject of distributed image processing in the example case of a large data-set of regular-sized images. The data set consists of 48675 JPEG encoded images (a total of 265GB) taken across the span of 9 years at the Portus archaeological excavation site near Rome, Italy \cite{portusproject}. As the purpose of this data set is to provide a visual documentation of the activities of the project as thoroughly as possible, the subject matter of the photographs is rather varied: a random selection of images would probably contain examples of aerial photos, pictures of locations untouched by excavations and of areas already dug up and processed, among other things. In order to be able to use this in further work, it is necessary to organise it into a more logical structure and equip individual images with meta-data which can later be used to build indexes and allow searching. However, as the size of data grows, so does the amount of work necessary to file everything where it belongs. 
 Since traditionally there has been no easily-adaptable automatic solution for doing this, the task of analysis and classification of all this information had fallen on humans. On the other hand, taking into account the advances in image processing techniques and general increase in available computing power, there may be ways to speed up this sort of processing, especially with regard to things that have in recent times been shown to be possible using computers, such as object and text recognition. From the perspective of a human, these are often trivial and repetitive tasks, and therefore should be automated. In the following, I will provide some examples of these images and outline some of the ways data- and image processing technologies could help solve these issues.
 
-In order to proceed into specific approaches of extracting meaningful data, I will first briefly describe what are our aims when processing this data-set. 
+In order to proceed into specific approaches of extracting meaningful data, I will first briefly describe what are our aims when processing this data-set. Looking at some of the images
 
 \subsubsection{Classification by Exif meta-data and folder structure}
 
@@ -403,8 +334,6 @@ Extracting Exif meta-data and making assumptions about the classification of ima
 \end{figure}
 \end{center}
 
-
-
 \subsection{Problem statement}
 
 Extracting meaningful data from images is a non-trivial task. OCR, object recognition, identifying similar images, measuring image quality.
@@ -444,11 +373,11 @@ Metadata-extractor \cite{metadataextractor}
 
 \section{Processing a large image using a local non-iterative algorithm}
 
-In this section, I will describe a practical application of distributed image processing with MapReduce in using the algorithm described by Chaudhury et al. in "Fast O(1) bilateral filtering using trigonometric range kernels" \cite{chaudhury2011fast}. Although a thorough explanation of the algorithm is not the focus of this thesis, in the following sections I will present a basic description of the naive bilateral filter algorithm.
+In this section, I will describe a practical application of distributed image processing with MapReduce in using the algorithm described by Chaudhury et al. in "Fast O(1) bilateral filtering using trigonometric range kernels" \cite{chaudhury2011fast}. Although a thorough explanation of the algorithm is not the focus of this thesis, in the following sections I will present a basic description of the naive bilateral filter algorithm, which .
 
 \subsection{Description of the data and use case}
 
-As already briefly mentioned in the introduction of this work, the image in question is a photograph taken by a microscope, with a width and height of 86273 and 81025 pixels, respectively. The subject matter is a group of cells, and the objective of image processing in this case is to somehow programmatically count the number of nuclei in the image. One probable step in such an image processing computation is to smooth colours in the image while accenting the edges in order to allow for more easier detection of nuclei. The fast O(1) bilateral filter algorithm is a local non-iterative way of accomplishing this, and therefore a good candidate for applying on the image even when it has been partitioned in order to fit into memory of all the nodes in the Hadoop cluster.
+As already briefly mentioned in the introduction of this work, the image in question is a photograph taken by a microscope, with a width and height of 86273 and 81025 pixels, respectively, and stored in a GeoTIFF container \cite{mahammad2003geotiff}. The subject matter is a group of cells, and the objective of image processing in this case is to somehow programmatically count the number of nuclei in the image. One probable step in such an image processing computation is to smooth colours in the image while accenting the edges in order to allow for more easier detection of nuclei. The fast O(1) bilateral filter algorithm is a local, non-iterative way of accomplishing this, and therefore a good candidate for applying on the image even when it has been partitioned in order to fit into memory of all the nodes in the Hadoop cluster.
 
 \begin{center}
 \begin{figure}[h]
@@ -465,7 +394,7 @@ As already briefly mentioned in the introduction of this work, the image in ques
   %\label{fig:sub2}
 \end{subfigure}
 \caption{On the left - a 512 by 512 pixel detail of the microscope image. On the right - results of fast O(1) bilateral filtering with $\sigma_s, \sigma_r$ = 10. The dark spots are the nuclei of the cells, which are now more defined on the processed image, allowing for easier object recognition.}
-\label{fig_gaussian_blur}
+\label{fig_microscope}
 \end{figure}
 \end{center}
 
@@ -473,9 +402,86 @@ As already briefly mentioned in the introduction of this work, the image in ques
 
 In the context of this thesis, I will refer to the bilateral filter as a smoothing filter that attempts to preserve edges while reducing noise in the image. It has previously been described by Aurich and Weule, Tomasi and Manduchi, and Smith and Brady \cite{aurich1995non,smith1997susan,tomasi1998bilateral}. This section will describe both the naive and optimised implementations with regard to performance and resource requirements and provide a brief overview of it's common uses. The following descriptions are adapted from course notes by Paris et al. \cite{bf_course}. In the interests of simplicity and also due to differences between real-world implementations of these algorithms with regard to processing images with more than one color channel, the formulations here will apply only to images with a single number as the pixel value (i.e. monochrome images). In general, however, it can be assumed that given a multichannel image, the algorithm will simply process each channel separately.
 
+%\subsubsection{Image processing}
+
+As already mentioned in the preceding text, I will restrict the focus of this thesis to the field of image processing to two-dimensional color images. The following will not be a description of how images are acquired through the use of scanning or digital cameras, therefore it is assumed here that the reader is familiar with the notions of pixels, 2-dimensional coordinate notation and representing color using red, green and blue values. Therefore I will start with the following formal definition: I consider the image $I$ with width $x$ and height $y$ as a collection of pixels $p$, such that
+
+\begin{center}
+$I = \{ \, p_{i,j} | \, i \in [1,x], \, j \in [1,y] \, \}$, and
+
+$p_{i,j} = (r_{i,j}, g_{i,j}, b_{i,j})$,
+\end{center}
+where $r_{i,j}$, $g_{i,j}$ and $b_{i,j}$ are respectively the red, green and blue values of the pixel at $x$-coordinate $i$ and $y$-coordinate $j$. From this definition it is more or less straightforward to estimate the minimal memory requirements for storing an image with known dimensions when the programming language and data type for storing individual color values is also chosen. Since this thesis deals with Java, and image processing algorithms tend to prefer floating point values (which are 32 bits in Java) in the interests of precision, we can estimate the memory consumption $M$ of an image with dimensions $x$ and $y$ as follows:
+
+\begin{center} 
+$M = x * y * 3 * 32$ bits.
+\end{center}
+
+As image processing algorithms tend to operate on uncompressed images, using this sort of calculations provides a way of estimating the memory requirements from the time complexity of the processing tasks. Therefore the size of compressed the image file (for example JPEG or PNG) is only very loosely correlated with the time it takes to process that image, as the efficiency of compression algorithms depends on the information content of the image itself, whereas the estimation method described above only takes into account the spatial dimensions of the image.
+
+\subsubsection{Gaussian blur}
+
+One of the simplest local algorithms in image processing is Gaussian blur (also known as Gaussian smoothing). It's most common application is noise reduction. An example can be seen in figure \ref{fig_gaussian_blur}. The bilateral filter algorithm described later on in this thesis is an improvement of Gaussian blur with regard to edge-preservation capability. The following is a formal description of the algorithm:
+
+\begin{center}
+\begin{algorithm}[h]
+	\KwData{$I$ - input image, $O$ - output image, $\sigma$ - filter range, $h$ - height of the input image, $w$ - width of the input image}
+	\For{$x = 1, 2, ... w$}{
+		\For{$y = 1, 2, ... h$}{
+			$O(x,y) = 0$
+
+			\For{$x_\sigma = x-\sigma ... x+\sigma$}{
+				\For{$y_\sigma = y-\sigma ... y+\sigma$}{
+					$O(x,y) += I(x_\sigma, y_\sigma)*G_\sigma(\| (x_\sigma, y_\sigma)-(x, y) \|)$
+				}
+			}
+		}
+	}
+\end{algorithm}
+\end{center}
+
+Here, $I(x,y)$ and $O(x,y)$ signify pixels of input and output images at width and height coordinates $x$ and $y$ respectively, $\| (x_\sigma, y_\sigma)-(x, y) \|$ represents the distance between the pixel being processed and the pixel at $(x_\sigma, y_\sigma)$. $G_\sigma(x)$ is the Gaussian function
+
+\begin{center}
+$G_\sigma(x) = \frac{1}{2\pi\sigma^2} \exp(-\frac{x^2}{2\sigma^2})$.
+\end{center}
+
+TODO verify if the above is correct.
+
+Essentially, what happens to each pixel during the course of this algorithm, is that their values are re-calculated as a weighted sum of their neighboring pixels, and $\sigma$ specifies the range of this neighborhood. This is best visualised by thinking of pixels as cells and the image as the table - the $\sigma$-neighborhood of pixel $I(x,y)$ then is the group of cells extending $\sigma$ rows above and below, and $\sigma$ columns before and after the cell in focus (see figure \ref{fig_gaussian_blur}). Due to the characteristics of Gaussian distribution, as the distance $\| (x_\sigma, y_\sigma)-(x, y) \|$ between pixels increases, the weight decreases. This means that pixels further away contribute less to the new value of the pixel currently in focus, and pixels outside the $\sigma$-neighborhood of the pixel do not affect it's value at all. It is important to note here that the actual values of the pixels do not affect the calculations of the weights at all, and the $G_\sigma(x)$ can be pre-calculated as a matrix of weights, bringing the time complexity of the algorithm to $O(n)$, where $n$ is the amount of pixels in the image.
+
+%\begin{center}
+\begin{figure}[h]
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.35]{Lenna.eps} %TODO render with PDF
+  %\caption{Regular image}
+  %\label{fig:sub1}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.35]{Lenna_gaussian_10px.eps} %TODO render with PDF
+  %\caption{A subfigure}
+  %\label{fig:sub2}
+\end{subfigure}
+\\
+\\
+\begin{subfigure}{1.0\textwidth}
+  \centering
+	%\begin{center}
+  \includegraphics[scale=0.73]{Lenna_bf_100_10.eps} %TODO render with PDF
+	%\end{center}
+  %\caption{A subfigure}
+  %\label{fig:sub2}
+\end{subfigure}
+\caption{An example of Gaussian blur with $\sigma$ = 10 (top right) and Fast O(1) Bilateral Filter (bottom) with $\sigma_s=100, \sigma_r=10$ applied to the Lenna test image (top left)\cite{lenna}.}
+\label{fig_gaussian_blur}
+\end{figure}
+%\end{center}
+
 \subsubsection{Naive bilateral filter algorithm}
 
-The improvement introduced to the Gaussian filter by the bilateral filter is an additional weight term which takes into account the values of the $\sigma$-neighborhood of the pixel. This requires the addition of another cycle over all the pixels in the image and leads us to the following formulation:
+The improvement introduced to the Gaussian filter by the bilateral filter is an additional weight term which takes into account the values of the $\sigma$-neighborhood of the pixel (see figures \ref{fig_gaussian_blur,fig_microscope} for an example). This requires the addition of another cycle over all the pixels in the image and leads us to the following formulation:
 
 \begin{center}
 \begin{algorithm}[H]
@@ -501,15 +507,139 @@ The improvement introduced to the Gaussian filter by the bilateral filter is an 
 
 TODO correct the formulation
 
-
 \subsubsection{Fast O(1) bilateral filter algorithm}
 
-In order to somehow gauge the feasibility of using Hadoop MapReduce as a platform for image processing, I used the implementation of a bilateral filter by Chaudhury et al. (TODO cite).
-Description of the bilateral filter algorithm, it's applications and details about the implementation used for benchmarking.
+Since the bilateral filter it's previously defined form has a time complexity of $O(|I|^2)$ (with $|I|$ as the number of pixels in the image), it is easy to see that it is a feasible approach for only smaller images, as processing time grows quadratically as the image size increases. Therefore in order provide a relevant evaluation of distributed image processing with regard to large images, I selected an existing implementation of an optimised bilateral filter algorithm, described by Chaudhury et al. in "Fast O(1) bilateral filtering using trigonometric range kernels" \cite{chaudhury2011fast}. The authors also provide an existing Java implementation, which I adapted into a Hadoop MapReduce program in order to be able to directly compare sequential and distributed performance.
 
-\subsection{Performance}
+\subsection{Practical approach}
 
-One of the main issues with regard to measuring the performance of the FBF algorithm was comparing the results of the sequential version to the distributed MapReduce one.
+Due to the size of the image in question, the first step in the processing chain was to split it into parts small enough to fit into HDFS blocks, but big enough to maximally take advantage of the processing power: as each Map or Reduce task requires some resources to start and shut down, it is in our interests to minimise the number of these tasks. When running my experiments, I used a Hadoop cluster set up with a HDFS block size of 64 megabytes. Therefore, when splitting the big image into parts (each a PNG file), I used the following reasoning:
+
+\begin{itemize}
+\item A standard image of three color channels, 64 megabytes can hold values of $64*1024*1024*8/24\cong22369621$ pixels, which is roughly an image of 4729 by 4729 pixels.
+\item Since this calculation is for estimating storage requirements for raw data, it can be safely assumed that even in the worst case scenario, PNG compression will not perform worse.
+\item Therefore, a choice of 4500 by 4500 pixels should be close to optimal, regardless of the content of the image.
+\end{itemize}
+
+Before partitioning the image based on this idea, it is also necessary to take into account the characteristics of the processing we are about to apply. Namely, we have to ensure that the results of this divide-and-conquer type approach are identical to the results we would attain by processing the image without partitioning. In this case, we are dealing with a local non-iterative algorithm, therefore this is relatively straightforward: we only have to make sure that adjacent parts of the image have an overlap big enough, so that when the algorithm calculates new values for pixels at the edge of the partial images, it still has the values of their neighboring pixels. For example, in the case of applying Gaussian blur with a radius of 5, the initial image should be partitioned so that individual pieces have an overlap of at least 5 pixels.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.8]{partitioning.eps} %TODO render with PDF
+%\includegraphics[scale=0.8]{local_iterative.pdf} %render with PDF
+\caption{A diagram illustrating the concept of partitioning. Bright blue signifies the overlap necessary to calculate all the X-s on the left and right parts. Later the pieces can be merged and the overlap discarded.}
+\label{fig_partitioning}
+\end{center}
+\end{figure}
+
+In the spirit of this analysis, I split the 6.99 gigapixel photo into pieces using the following algorithm:
+
+\begin{center}
+\begin{algorithm}[H]
+	\KwData{$w$ - input width, $h$ - input height, $o$ - overlap, $b$ - piece height/width, $f_x$ - width offset, $f_y$ - height offset}
+	\For{$f_x = 0, 1, ... w$}{
+
+		\If{$f_x + b > w$}{
+			$tmp_{width} = w - f_x$			
+		}
+		\Else{$tmp_{width} = b$}
+
+		\For{$f_y = 0, 1, ... h$}{
+
+			\If{$f_y + b > h$}{
+				$tmp_{height} = w - f_x$
+			}
+			\Else{$tmp_{height} = b$}
+			
+			$extract\_part(f_x, f_y, tmp_{width}, tmp_{height})$
+
+			$f_y += b$
+		}
+		$f_x += b$
+	}
+\end{algorithm}
+\end{center}
+
+As a result, the original image was converted into 380 parts of varying size both in terms of dimensions and storage: the biggest piece with dimensions 4500 by 4500 and 30.4 megabytes in size, and the smallest piece being roughly 913 kilobytes with a width of 1381 and height of 601 pixels. This concludes the part of pre-processing the data in preparation of uploading it to the Hadoop Distributed File System.
+To extract the pieces from the GeoTIFF container, I used the Geospatial Data Abstraction Library (GDAL) in conjunction with a script written in Python specially for this purpose \cite{gdal, python}.
+
+\subsubsection{Implementation in MapReduce}
+
+\subsubsection{Testing}
+
+All tests were run on a Hadoop cluster with one m1.small virtual machine as the master node and m2.xlarge virtual machines as computing nodes on the Amazon EC2 cloud (see figure \ref{fig_instance_types} for details on the instance types). With regard to the configuration of the Hadoop cluster, most parameters remained set to the default values both in runs with version 0.20.2 and 1.0.3. The only exceptions were setting the HDFS block size to 64 megabytes, and setting the maximum memory for Map and Reduce tasks to 15 000 megabytes. The choice of m2.xlarge instances for computing nodes was directly influenced by the requirements of the algorithm - all attempts to run the tests with m1.small instances failed because there was not enough memory available. Using m2.xlarge eliminated these problems and due to the number of cores, also allowed simultaneous processing of two images. In the following, I will present the results of testing the fast O(1) bilateral filter algorithm in various configurations.
+
+\begin{figure}[h]
+\begin{center}
+\begin{tabular}{r | l}
+Instance type & m1.small \\
+\hline
+Memory & 1.7 GiB \\
+CPU & 1 virtual core with 1 EC2 Compute Unit \\
+Local storage & 160 GB \\
+Platform & 64-bit \\
+\hline\hline
+Instance type & m2.xlarge \\
+\hline
+Memory & 17.1 GiB \\
+CPU & 2 virtual cores with 3.25 EC2 Compute Units each \\
+Local storage & 420 GB \\
+Platform & 64-bit \\
+\end{tabular}
+\caption{Parameters of the m1.small and m2.xlarge instance types according to the Amazon EC2 official web page \cite{ec2_instancetypes}. One EC2 Compute Unit can be thought of as the equivalent of a 
+1.0-1.2 GHz 2007 Opteron or 2007 Xeon processor.}
+\label{fig_instance_types}
+\end{center}
+\end{figure}
+
+The principal results of testing can be seen in figure \ref{bf_speedup}. In order to best compare the MapReduce adaptation of the algorithm to it's performance as a stand-alone ImageJ plugin, I wrote a shell script which started an ImageJ macro to sequentially process all the parts of the original image in a m2.xlarge instance. Since the technical parameters of the instance were identical to the computing nodes', this gives us a good estimate of how much the Hadoop framework affected the speed of the computations. As can be seen from the chart in figure \ref{bf_speedup}, the decrease in speed is noticeable, but small. Considering that Hadoop also provides fault-tolerance, load balancing and handles the distribution of data all by itself, it can be argued, that this sort of approach to image processing has justified itself, at least in this case.
+
+\begin{figure}[h]
+\begin{subfigure}{.5\textwidth}
+%\begin{center}
+  \centering
+  \includegraphics[scale=1.0]{bf_speedup.eps} %TODO render with PDF
+  %\caption{Regular image}
+  %\label{fig:sub1}
+%\end{center}
+\end{subfigure}
+%
+\\
+\begin{subfigure}{.5\textwidth}
+\begin{center}
+  %\centering
+	\begin{tabular}{c | c | c | c}
+	Number of nodes & Wall time (s.) & Theoretical speed-up & Actual speed-up \\ 
+	\hline
+	Sequential & 22763.9 & 1 & 1 \\
+	1 & 23879.5 & 1 & 0.95 \\
+	2 & 11944.6 & 2 & 1.91 \\
+	4 & 6534.2 & 4 & 3.48 \\
+	8 & 3031.2 & 8 & 7.51 \\
+	16 & 1557.2 & 16 & 14.62 \\
+	\end{tabular}
+\end{center}
+\end{subfigure}
+\caption{A comparison of processing time with regard to speed-up due to parallelisation. The left column represents the number of computing nodes in the cluster. The result is an average of ten runs with 8 and 16 nodes, five runs with 2 and 4 nodes and two runs with 1 node. Sequential represents the result attained by a stand-alone script calling ImageJ and running the Fast O(1) Bilateral Filter plugin on all pieces of the image.}
+\end{figure}
+
+
+
+\begin{figure}[h]
+\begin{center}
+\begin{tabular}{c | c | c}
+Number of nodes & Wall time, 0.20.2 (s.) & Wall time, 1.0.3 (s.) \\ 
+\hline
+8 & 3031.2 & 3286.9 \\
+16 & 1557.2 & 1693.4 \\
+\end{tabular}
+\caption{Comparison in processing time between a cluster running on Hadoop version 0.20.2 and 1.0.3. In the latter case, the result is an average of five test runs.}
+\end{center}
+\end{figure}
+
+
+
+
 
 \subsection{Technologies used}
 

@@ -368,5 +368,34 @@ keywords = "Collective communication"
   year={2011}
 }
 
+@article{japan2002jeita,
+  title={JEITA CP-3451 Exchangeable image file format for digital still cameras: Exif Version 2.2},
+  author={Japan Electronics and Information Technology Industries Association and others},
+  journal={Japan Electronics and Information Technology Industries Association},
+  year={2002}
+}
 
+@ONLINE{lenna,
+ author = {Wikipedia},
+ title = {Lenna},
+ month = {May},
+ year = {2013},
+ url = {\url{http://en.wikipedia.org/wiki/Lenna}}
+}
+
+@ONLINE{ec2_instancetypes,
+ author = {Amazon.com Inc.},
+ title = {Amazon EC2 Instance Types},
+ month = {May},
+ year = {2013},
+ url = {\url{http://aws.amazon.com/ec2/instance-types/}}
+}
+
+@ONLINE{gdal,
+ author = {GDAL},
+ title = {GDAL - Geospatial Data Abstraction Library },
+ month = {May},
+ year = {2013},
+ url = {\url{http://www.gdal.org/}}
+}
 
