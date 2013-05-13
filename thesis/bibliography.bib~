@@ -399,3 +399,11 @@ keywords = "Collective communication"
  url = {\url{http://www.gdal.org/}}
 }
 
+@ONLINE{python,
+ author = {Python Software Foundation},
+ title = {Python Programming Language – Official Website},
+ month = {May},
+ year = {2013},
+ url = {\url{http://www.python.org/}}
+}
+

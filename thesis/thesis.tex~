@@ -265,9 +265,9 @@ Since this thesis is aimed towards exploring the feasibility of distributed imag
 \section{Processing a large data set of regular images}
 
 In this section, we look at the subject of distributed image processing in the example case of a large data-set of regular-sized images. The data set consists of 48675 JPEG encoded images (a total of 265GB) taken across the span of 9 years at the Portus archaeological excavation site near Rome, Italy \cite{portusproject}. As the purpose of this data set is to provide a visual documentation of the activities of the project as thoroughly as possible, the subject matter of the photographs is rather varied: a random selection of images would probably contain examples of aerial photos, pictures of locations untouched by excavations and of areas already dug up and processed, among other things. In order to be able to use this in further work, it is necessary to organise it into a more logical structure and equip individual images with meta-data which can later be used to build indexes and allow searching. However, as the size of data grows, so does the amount of work necessary to file everything where it belongs. 
-Since traditionally there has been no easily-adaptable automatic solution for doing this, the task of analysis and classification of all this information had fallen on humans. On the other hand, taking into account the advances in image processing techniques and general increase in available computing power, there may be ways to speed up this sort of processing, especially with regard to things that have in recent times been shown to be possible using computers, such as object and text recognition. From the perspective of a human, these are often trivial and repetitive tasks, and therefore should be automated. In the following, I will provide some examples of these images and outline some of the ways data- and image processing technologies could help solve these issues.
+Since traditionally there has been no easily-adaptable solution for doing this, the task of analysis and classification of all this information has fallen on humans. On the other hand, taking into account the advances in image processing techniques and general increase in available computing power, there may be ways to speed up this sort of processing, especially with regard to things that have in recent times been shown to be possible using computers, such as object and text recognition. From the perspective of a human, these are often trivial and repetitive tasks, and therefore should be automated. In the following, I will provide some examples of these images and outline some of the ways data- and image processing technologies could help solve these issues.
 
-In order to proceed into specific approaches of extracting meaningful data, I will first briefly describe what are our aims when processing this data-set. Looking at some of the images
+In order to proceed into specific approaches of extracting meaningful data, it is first important to look at some of the tasks which could be automated in the analysis and processing of this data-set. %TODO
 
 \subsubsection{Classification by Exif meta-data and folder structure}
 
@@ -334,6 +334,10 @@ Extracting Exif meta-data and making assumptions about the classification of ima
 \end{figure}
 \end{center}
 
+\subsection{Results}
+
+Processing the data-set with a 16-node Hadoop cluster running version 0.20.2 took \textbf{12,5 hours} ($~0.9$ seconds per image on average), with 8 worker nodes, this number increased to \textbf{24,2} ($~1.8$ seconds per image). Since this trend probably continues as the size of the cluster decreases, we can assume a total execution time of roughly 194 hours (at $~14$ seconds per image) to process all 48675 photos in the data-set. 
+
 \subsection{Problem statement}
 
 Extracting meaningful data from images is a non-trivial task. OCR, object recognition, identifying similar images, measuring image quality.
@@ -373,7 +377,7 @@ Metadata-extractor \cite{metadataextractor}
 
 \section{Processing a large image using a local non-iterative algorithm}
 
-In this section, I will describe a practical application of distributed image processing with MapReduce in using the algorithm described by Chaudhury et al. in "Fast O(1) bilateral filtering using trigonometric range kernels" \cite{chaudhury2011fast}. Although a thorough explanation of the algorithm is not the focus of this thesis, in the following sections I will present a basic description of the naive bilateral filter algorithm, which .
+In this section, I will describe a practical application of distributed image processing in the scenario of applying a local non-iterative algorithm on a image with large spatial dimensions. The rest of this section is structured as follows: first, a description of the image itself and the motivation behind the task. Further on, I will outline the divide-and-conquer approach used in splitting the image into manageable pieces, briefly describe the specifics of the MapReduce implementation of the algorithm and how it's performance was measured and compared with it's non-distributed (sequential) counterpart.
 
 \subsection{Description of the data and use case}
 
@@ -509,7 +513,7 @@ TODO correct the formulation
 
 \subsubsection{Fast O(1) bilateral filter algorithm}
 
-Since the bilateral filter it's previously defined form has a time complexity of $O(|I|^2)$ (with $|I|$ as the number of pixels in the image), it is easy to see that it is a feasible approach for only smaller images, as processing time grows quadratically as the image size increases. Therefore in order provide a relevant evaluation of distributed image processing with regard to large images, I selected an existing implementation of an optimised bilateral filter algorithm, described by Chaudhury et al. in "Fast O(1) bilateral filtering using trigonometric range kernels" \cite{chaudhury2011fast}. The authors also provide an existing Java implementation, which I adapted into a Hadoop MapReduce program in order to be able to directly compare sequential and distributed performance.
+Since the bilateral filter it's previously defined form has a time complexity of $O(|I|^2)$ (with $|I|$ as the number of pixels in the image), it is easy to see that it is a feasible approach for only smaller images, as processing time grows quadratically as the image size increases. Therefore in order provide a relevant evaluation of distributed image processing with regard to large images, I selected an existing implementation of an optimised bilateral filter algorithm, described by Chaudhury et al. in "Fast O(1) bilateral filtering using trigonometric range kernels" \cite{chaudhury2011fast}. The authors also provide an existing Java implementationin the form of an ImageJ plug-in, which I adapted into a Hadoop MapReduce program in order to be able to directly compare sequential and distributed performance \cite{imagej}.
 
 \subsection{Practical approach}
 
@@ -561,9 +565,11 @@ In the spirit of this analysis, I split the 6.99 gigapixel photo into pieces usi
 \end{center}
 
 As a result, the original image was converted into 380 parts of varying size both in terms of dimensions and storage: the biggest piece with dimensions 4500 by 4500 and 30.4 megabytes in size, and the smallest piece being roughly 913 kilobytes with a width of 1381 and height of 601 pixels. This concludes the part of pre-processing the data in preparation of uploading it to the Hadoop Distributed File System.
-To extract the pieces from the GeoTIFF container, I used the Geospatial Data Abstraction Library (GDAL) in conjunction with a script written in Python specially for this purpose \cite{gdal, python}.
+To extract the pieces from the GeoTIFF container into individual PNG files, I used the Geospatial Data Abstraction Library (GDAL) in conjunction with a script written in Python specially for this purpose \cite{gdal, python}.
 
-\subsubsection{Implementation in MapReduce}
+\subsubsection{Implementation with Hadoop}
+
+Having partitioned the image into pieces that fit into memory, the next step is to design a MapReduce program to operate on this data. Since, by specifying overlaps and fitting the pieces within the HDFS block size during the partitioning phase, we have already ensured that each instance of the algorithm has it's necessary data locally available. Also, since we can easily perform all necessary computations in the Map phase, there is no need for a Reducer - Hadoop will simply write output to storage after the Map phase. Therefore, in this case, the MapReduce program consists only of three definitions: InputFormat, Mapper and OutputFormat. Their respective purposes are straightforward: read blocks from storage and convert them to Java objects that contain a piece of the image, process these pieces with the fast O(1) bilateral filter, and finally convert the resulting objects back to PNG files and write to HDFS. 
 
 \subsubsection{Testing}
 
@@ -592,7 +598,7 @@ Platform & 64-bit \\
 \end{center}
 \end{figure}
 
-The principal results of testing can be seen in figure \ref{bf_speedup}. In order to best compare the MapReduce adaptation of the algorithm to it's performance as a stand-alone ImageJ plugin, I wrote a shell script which started an ImageJ macro to sequentially process all the parts of the original image in a m2.xlarge instance. Since the technical parameters of the instance were identical to the computing nodes', this gives us a good estimate of how much the Hadoop framework affected the speed of the computations. As can be seen from the chart in figure \ref{bf_speedup}, the decrease in speed is noticeable, but small. Considering that Hadoop also provides fault-tolerance, load balancing and handles the distribution of data all by itself, it can be argued, that this sort of approach to image processing has justified itself, at least in this case.
+The principal results of testing can be seen in figure \ref{bf_speedup}. In order to best compare the MapReduce adaptation of the algorithm to it's performance as a stand-alone ImageJ plugin, I wrote a shell script which started an ImageJ macro to sequentially process all the parts of the original image in a m2.xlarge instance. Since the technical parameters of the instance were identical to the computing nodes', this gives us a good estimate of how much the Hadoop framework affected the speed of the computations. As can be seen from the chart in figure \ref{bf_speedup}, the decrease in speed is noticeable, but small. Considering that Hadoop also provides fault-tolerance, load balancing and handles the distribution of data all by itself, it can be argued that this sort of approach to image processing has justified itself, and could reliably used as a solution for similar problems.
 
 \begin{figure}[h]
 \begin{subfigure}{.5\textwidth}
@@ -621,7 +627,9 @@ The principal results of testing can be seen in figure \ref{bf_speedup}. In orde
 \end{center}
 \end{subfigure}
 \caption{A comparison of processing time with regard to speed-up due to parallelisation. The left column represents the number of computing nodes in the cluster. The result is an average of ten runs with 8 and 16 nodes, five runs with 2 and 4 nodes and two runs with 1 node. Sequential represents the result attained by a stand-alone script calling ImageJ and running the Fast O(1) Bilateral Filter plugin on all pieces of the image.}
+\label{bf_speedup}
 \end{figure}
+
 
 
 \begin{figure}[h]
@@ -637,13 +645,10 @@ Number of nodes & Wall time, 0.20.2 (s.) & Wall time, 1.0.3 (s.) \\
 \end{figure}
 
 
+%\subsection{Technologies used}
 
-
-
-\subsection{Technologies used}
-
-\subsubsection{ImageJ}
-For processing images while working on the practical part of this thesis, I used the ImageJ library. It is a freely available image processing application written in Java and developed by the National Institutes of Health \cite{imagej}. It supports the processing and analysis of a wide variety of image types (8-, 16-, 32-bit RGB/black \& white images) and many commonly used image file formats such as PNG, TIFF and JPEG.
+%\subsubsection{ImageJ}
+%For processing images while working on the practical part of this thesis, I used the ImageJ library. It is a freely available image processing application written in Java and developed by the National Institutes of Health \cite{imagej}. It supports the processing and analysis of a wide variety of image types (8-, 16-, 32-bit RGB/black \& white images) and many commonly used image file formats such as PNG, TIFF and JPEG.
 
 
 
