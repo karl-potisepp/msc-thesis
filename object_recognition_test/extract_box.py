@@ -17,6 +17,7 @@ def main():
 	x = int(line[1])-offsetx
 	y = int(line[2])-offsety
 
+	print "convert \""+imagefile+"\" -crop "+str(x)+"x"+str(y)+"+"+str(offsetx)+"+"+str(offsety)+" \""+imagefile+"\""
 	os.system("convert \""+imagefile+"\" -crop "+str(x)+"x"+str(y)+"+"+str(offsetx)+"+"+str(offsety)+" \""+imagefile+"\"")
   
   #convert out.png -crop 591x340+2614+1329 crop.png
