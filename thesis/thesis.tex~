@@ -267,22 +267,30 @@ Since this thesis is aimed towards exploring the feasibility of distributed imag
 In this section, we look at the subject of distributed image processing in the example case of a large data-set of regular-sized images. The data set consists of 48675 JPEG encoded images (a total of 265GB) taken across the span of 9 years at the Portus archaeological excavation site near Rome, Italy \cite{portusproject}. As the purpose of this data set is to provide a visual documentation of the activities of the project as thoroughly as possible, the subject matter of the photographs is rather varied: a random selection of images would probably contain examples of aerial photos, pictures of locations untouched by excavations and of areas already dug up and processed, among other things. In order to be able to use this in further work, it is necessary to organise it into a more logical structure and equip individual images with meta-data which can later be used to build indexes and allow searching. However, as the size of data grows, so does the amount of work necessary to file everything where it belongs. 
 Since traditionally there has been no easily-adaptable solution for doing this, the task of analysis and classification of all this information has fallen on humans. On the other hand, taking into account the advances in image processing techniques and general increase in available computing power, there may be ways to speed up this sort of processing, especially with regard to things that have in recent times been shown to be possible using computers, such as object and text recognition. From the perspective of a human, these are often trivial and repetitive tasks, and therefore should be automated. In the following, I will provide some examples of these images and outline some of the ways data- and image processing technologies could help solve these issues.
 
-In order to proceed into specific approaches of extracting meaningful data, it is first important to look at some of the tasks which could be automated in the analysis and processing of this data-set. %TODO
+In order to proceed into specific approaches of extracting meaningful data, it is first important to look at some of the tasks which could be automated in the analysis and processing of this data-set. While methods of computer vision allow fairly complicated tasks to be solved, such as generating 3-dimensional models from single still images and utilising the internet for training object recognition models, in this case, our focus is much simpler \cite{sudo2009associative,saxena2008}. Discussing this matter with the archaeologists working with this data, and later condensing the list of issues that could feasibly be solved (both with regards to my understanding of the capabilities of current technology and the amount of resources at my disposal), I decided on the following:
+
+\begin{itemize} 
+\item Automatic tagging by meta-data.
+\item Recognising the presence of certain objects of interest in the photographs.
+\item Performing optical character recognition on photographed text.
+\end{itemize} 
+
+Before going into the specifics of solving these three tasks, it is important to note that since the aim of this thesis is to estimate the feasibility of using Apache Hadoop for large-scale image processing tasks, the solutions provided here should be viewed as proof-of-concept and be used only as starting points for more efficient realisations. However, with regard to providing some estimate as to whether using MapReduce for these sorts of problems, they should suffice.
 
 \subsubsection{Classification by Exif meta-data and folder structure}
 
-The first and probably the easiest way to approach the task of classifying and structuring a data set of this size is by taking advantage of all the information already present in the form of meta-data defined by the exchangeable image file format standard (Exif) \cite{japan2002jeita}. A simple example -already implemented in many pieces of photo management software - is grouping photos according to the creation date, which is a common meta-data tag. Moving further, it is a reasonable assumption that the initial step of sorting images has already taken place when the photographer moved the photos from the internal memory of the camera to a folder on their computer. This means that even if only one image in a given subfolder of the dataset has some specific tag-value pair (for instance tying the images to some specific geographic location), it could easily be added to all the other images in that subfolder, potentially reducing the workload of a human, who then has to only tag one image of a given group.
+The first and probably the easiest way to approach the task of classifying and structuring a data set of this size is by taking advantage of all the information already present in the form of meta-data defined by the exchangeable image file format standard (Exif) \cite{japan2002jeita}. A simple example -already implemented in many pieces of photo management software - is grouping photos according to the creation date, which is a common meta-data tag. Moving further, it is a reasonable assumption that the initial step of sorting images has already taken place when the photographer moved the photos from the internal memory of the camera to a directory on their computer's file system. This means that even if only one image in a given subdirectory of the dataset has some specific tag-value pair (for instance tying the images to some specific geographic location), it could easily be added to all the other images in that subfolder, potentially reducing the workload of a human, who then has to only tag one image of a given group.
 However, this only solves part of the problem, because we are also interested in grouping photos by geographic location and - ultimately - content. As the pictures are taken with cameras that do not possess a receiver that allows them to automatically tag images with geospatial coordinates, nor can they provide any useful description of photo content aside from the raw data itself, this information has to be extracted by either automatic or manual processing of image data. 
 
 \subsubsection{Information extraction by object and text recognition}
 
-Extracting Exif meta-data and making assumptions about the classification of images based on their location in the file system is connected with image processing only because the Exif standard deals with image files - this processing does not take the actual pixel data into account. However, as seen in figures \ref{archaeology_ex1} and \ref{archaeology_ex2}, there is definitely some information stored within this data that could be feasibly extracted programmatically. 
+Extracting Exif meta-data and making assumptions about the classification of images based on their location in the file system is connected with image processing only because the Exif standard deals with image files - this processing does not take the actual pixel data into account. However, as seen in figures \ref{archaeology_ex1} and \ref{archaeology_ex2}, there is definitely some information stored within this data that could be feasibly extracted programmatically. In the case of the first example - a photo of what appears to be a unearthed Roman coin - we would be interested in extracting the text on the paper and storing in within the Exif meta-data structure of that image. On the second image, the same sort of data is written by hand on a small blackboard, accompanied by markers to allow a human observer determine both the size of the object and the direction in which the photo was taken. It is important to note that this task is conceptually be split in two: trying to determine whether the objects are present in the image and if they are, attempting to extract the information they encode. The idea behind this approach is that even if we fail to automatically retrieve all the necessary data, knowledge that the image (or a certain part of the image) contains something of interest already helps narrow down the amount of images a human worker has to process.
 
 \begin{center}
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.25]{archaeology_ex1.eps} %TODO render with PDF
-\caption{A photo of a roman coin. Images like this are good candidates for optical text recognition, because the text is clearly recognisable.}
+\caption{A photo of an archaeological find with an accompanying description on a printed piece of paper. Images like this are good candidates for optical text recognition, because the text is clearly recognisable.}
 \label{archaeology_ex1}
 \end{figure}
 \end{center}
@@ -305,14 +313,23 @@ Extracting Exif meta-data and making assumptions about the classification of ima
 \end{figure}
 \end{center}
 
-
  %It is somewhat structured and some images are also tagged with meta-data using folder structures. However, the structuring is incomplete, as evidenced by many duplicate images and missing meta-data (which currently has to be manually added). The motivation behind applying distributed image processing on this data set is to find out whether it is possible to speed up the structuring process and extract some meta-data with minimal human interference.
 
 %The downside of using this data set to illustrate the analysis of many small images using MapReduce is that since there is no ideally structured version of it to compare to, all efficiency statistics will be purely subjective. However the intent of this work is not to describe an effective meta-data extraction method, but rather analyse the suitability of MapReduce for this sort of task and discuss the issues (both solved and unsolved) encountered.
 
 %TODO explain structure more
 
-\subsubsection{Processing pipeline} 
+\subsubsection{Implementation in MapReduce}
+
+As I mentioned before, in this case, the Hadoop framework is used mostly to ensure the distribution of data, whereas the processing itself is handled by a shell script which is executed from within the MapReduce job. This solution carries the additional overhead of having to write individual images back to the local file system of the computing nodes, as reading data straight from HDFS is non-trivial to implement in a shell script. However, this method allowed me to quickly develop a working distributed image processing pipeline, as I could simply chain together different tools without having to adapt anything into Java.
+
+TODO packaging into sequence files
+
+TODO meta-data extraction handled by Drew Noakes' metadata-extractor \cite{metadataextractor}
+
+TODO processing pipeline handled by external shell script
+
+The image processing pipeline performs the following operations:
 
 \begin{enumerate}
 \item The \textit{find\_obj} performs object recognition and returns a list of matching pixel coordinates in the target image. In case of several pixels, the average is calculated. If no pixels were returned, halt processing.
@@ -322,8 +339,16 @@ Extracting Exif meta-data and making assumptions about the classification of ima
 \item Calculate bounding boxes for all the remaining regions.
 \item Based on the pixel coordinates from step 1, select the region that is located at these coordinates. If there is no region, halt processing.
 \item The top left and bottom right pixel coordinate of the selected region specifies the area to extract from the target image.
-\item Perform OCR using Tesseract on the cropped part and write results into a text file.
+\item Perform OCR using the Tesseract command line tool on the cropped part and write results into a text file.
 \end{enumerate}
+
+TODO find\_obj was adapted from the OpenCV library object recognition example by Liu Liu \cite{opencv}
+
+TODO thresholding, labeling, erosion, dilatation, bounding box by Pandore \cite{pandore}
+
+TODO box extraction by Python script and ImageMagick convert functions \cite{imagemagick, python}
+
+TODO optical character recognition using Tesseract \cite{tesseract}
 
 \begin{center}
 \begin{figure}[h]
@@ -336,7 +361,7 @@ Extracting Exif meta-data and making assumptions about the classification of ima
 
 \subsection{Results}
 
-Processing the data-set with a 16-node Hadoop cluster running version 0.20.2 took \textbf{12,5 hours} ($~0.9$ seconds per image on average), with 8 worker nodes, this number increased to \textbf{24,2} ($~1.8$ seconds per image). Since this trend probably continues as the size of the cluster decreases, we can assume a total execution time of roughly 194 hours (at $~14$ seconds per image) to process all 48675 photos in the data-set. 
+Processing the data-set with a 16-node Hadoop cluster running version 0.20.2 took \textbf{12,5 hours} ($\sim0.9$ seconds per image on average), with 8 worker nodes, this number increased to \textbf{24,2} ($\sim1.8$ seconds per image). Since this trend probably continues as the size of the cluster decreases, we can assume a total execution time of roughly 194 hours (at $\sim14$ seconds per image) to process all 48675 photos in the data-set. 
 
 \subsection{Problem statement}
 
@@ -349,30 +374,6 @@ Problem - since images come from many different makes and models of cameras, and
 TODO explain hadoop small file problem
 http://amilaparanawithana.blogspot.com/2012/06/small-file-problem-in-hadoop.html
 http://blog.cloudera.com/blog/2009/02/the-small-files-problem/
-
-\subsection{Performance}
-
-\subsection{Used technologies}
-
-\subsubsection{OpenCV}
-
-OpenCV \cite{opencv}
-
-\subsubsection{Tesseract}
-
-Tesseract \cite{tesseract}
-
-\subsubsection{Pandore}
-
-Pandore \cite{pandore}
-
-\subsubsection{ImageMagick}
-
-ImageMagick \cite{imagemagick}
-
-\subsubsection{Metadata-extractor}
-
-Metadata-extractor \cite{metadataextractor}
 
 \begin{center}
 \begin{figure}[h]
@@ -402,13 +403,13 @@ Metadata-extractor \cite{metadataextractor}
 \\
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[scale=0.3]{labeling_small.eps} %TODO render with PDF
+  \includegraphics[scale=0.27]{labeling_small.eps} %TODO render with PDF
   %\caption{Regular image}
   %\label{fig:sub1}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[scale=0.3]{erosion_small.eps} %TODO render with PDF
+  \includegraphics[scale=0.27]{erosion_small.eps} %TODO render with PDF
   %\caption{A subfigure}
   %\label{fig:sub2}
 \end{subfigure}
@@ -416,13 +417,13 @@ Metadata-extractor \cite{metadataextractor}
 \\
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[scale=0.3]{dilatation_small.eps} %TODO render with PDF
+  \includegraphics[scale=0.27]{dilatation_small.eps} %TODO render with PDF
   %\caption{Regular image}
   %\label{fig:sub1}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[scale=0.3]{bounding_box_small.eps} %TODO render with PDF
+  \includegraphics[scale=0.27]{bounding_box_small.eps} %TODO render with PDF
   %\caption{A subfigure}
   %\label{fig:sub2}
 \end{subfigure}
@@ -437,7 +438,6 @@ Metadata-extractor \cite{metadataextractor}
 \label{fig_pipeline_examples}
 \end{figure}
 %\end{center}
-
 
 \section{Processing a large image using a local non-iterative algorithm}
 
@@ -629,7 +629,7 @@ In the spirit of this analysis, I split the 6.99 gigapixel photo into pieces usi
 \end{center}
 
 As a result, the original image was converted into 380 parts of varying size both in terms of dimensions and storage: the biggest piece with dimensions 4500 by 4500 and 30.4 megabytes in size, and the smallest piece being roughly 913 kilobytes with a width of 1381 and height of 601 pixels. This concludes the part of pre-processing the data in preparation of uploading it to the Hadoop Distributed File System.
-To extract the pieces from the GeoTIFF container into individual PNG files, I used the Geospatial Data Abstraction Library (GDAL) in conjunction with a script written in Python specially for this purpose \cite{gdal, python}.
+To extract the pieces from the GeoTIFF container into individual PNG files, I used the Geospatial Data Abstraction Library (GDAL) in conjunction with a script written in Python specially for this purpose \cite{gdal}.
 
 \subsubsection{Implementation with Hadoop}
 
