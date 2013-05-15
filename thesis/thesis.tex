@@ -239,6 +239,7 @@ One of the integral parts of a Hadoop cluster is the Hadoop Distributed File Sys
 
 An important aspect of HDFS with regard to image processing is it's approach in storing files in blocks. Namely, while the block size of a regular file system - such as ext3 - is 1 to 8 kilobytes depending on the configuration, with HDFS, the default is 64 megabytes \cite{ext3}. There are two reasons for this design: as the blocks are written to physical storage in a contiguous manner, they can also be read with minimal disk seeking times, and because the file system is geared towards storing very large files, a larger block size ensures that storage of meta-data such as read/write permissions and physical locations of individual blocks creates less overhead. 
 Block size is somewhat important with regard to processing images, since if an image that is too big is uploaded to HDFS, there is no guarantee that all of it's blocks would be stored in the same physical location. Since a Map or Reduce task would then have to retrieve all of it's blocks before processing, the idea behind executing tasks that are local with regard to the data is lost: the speed of reading input data now depends on the network. Therefore, in order to ensure optimal processing speed, images should fit inside the HDFS block size. This is not a problem with most regular images, as it is easily possible to configure the cluster with a block size of even 128 megabytes or more, however increasing this parameter past a certain point may not have the desired effects. Also, as discussed before, processing very large images sets considerable memory requirements to the computers. For these reasons, splitting large images into manageable parts is the best solution.
+On the other hand, when dealing with a data-set of many small images, simply uploading them to HDFS results in the creation of a separate block for each file. Since a given Map or Reduce task operates so that it uses it's defined InputFormat to read data one block at a time, having many small blocks increases the overhead with regard to these operations. In these cases, it is standard practice to first store the data using a \textit{SequenceFile}. This file format is specifically geared towards storing Key-Value pairs which MapReduce operates on, and when loaded to HDFS, these files are automatically split into blocks, so that each block is independently readable. There is a caveat, however, with regard to the files that are located on the "edge" of the split. In order to illustrate this, I uploaded a SequenceFile with 3 images - 30 megabytes each - to HDFS with a configured block size of 50 megabytes. Quering the uploaded file with the Hadoop \textit{fsck} tool, I found that instead of writing the file as three blocks, each containing a full image, it was split into two blocks, so that one image ended up divided into two. This could negatively affect the performance of a job, since a Map or Reduce task would need to read both blocks to assemble the full image.
 
 Most results presented in this thesis were attained with Hadoop version 0.20.2. While - at the time of writing this - there are several more current stable releases available, this choice was made because of the need to analyse the log files of completed MapReduce jobs using the Starfish Log Analyzer, developed by Herodotou et al. \cite{herodotou2011starfish}. To find out whether there are any drastic changes in performance in newer versions of Hadoop, some tests were also run with version 1.0.3, however no significant improvement was found.
 
@@ -322,17 +323,14 @@ Extracting Exif meta-data and making assumptions about the classification of ima
 \subsubsection{Implementation in MapReduce}
 
 As I mentioned before, in this case, the Hadoop framework is used mostly to ensure the distribution of data, whereas the processing itself is handled by a shell script which is executed from within the MapReduce job. This solution carries the additional overhead of having to write individual images back to the local file system of the computing nodes, as reading data straight from HDFS is non-trivial to implement in a shell script. However, this method allowed me to quickly develop a working distributed image processing pipeline, as I could simply chain together different existing tools without having to adapt anything into Java.
+The first step in defining the MapReduce program for this task was figuring out the proper InputFormat to use. In this case, following the SequenceFile approach described earlier, I packaged the 48675 image files into 196 Key-Value collections, where the Key was set as the full path of the file with regard to the data-set, and Value as simply the contents of the file as a byte array.
+The function of the Mapper in this case can be summarised to this: it writes the image to local storage, extracts Exif meta-data, starts the external shell script which runs the image through the processing pipeline, reads any output from the script, and returns all meta-data as Values. The Reducer simply sorts the data for a given image and formats it, so that the final output is written to disk in text format, and could further be treated as a table of comma separated values (CSV). For meta-data extraction, I used Drew Noakes' metadata-extractor \cite{metadataextractor}. In the following paragraphs, I will explain more about the function of the shell script, which does most of the heavy lifting with regard to image processing in this scenario.
 
-TODO packaging into sequence files
+\subsubsection{Image processing pipelie}
 
-TODO meta-data extraction handled by Drew Noakes' metadata-extractor \cite{metadataextractor}
-
-TODO processing pipeline handled by external shell script
-
-The image processing pipeline performs the following operations:
-
+The main aim of the image processing pipeline is to provide a proof-of-concept solution to the tasks of recognising certain objects and extracting information by way of optical character recognition (OCR). As mentioned before, this is by no means a working solution that is ready to be applied in real world situations. However, a superficial analysis of the results suggests that, with some optimisation and tuning, it is suitable for extracting some information out of the data-set. The following is a rough description of each of the steps in the process:
 \begin{enumerate}
-\item The \textit{find\_obj} performs object recognition and returns a list of matching pixel coordinates in the target image. In case of several pixels, the average is calculated. If no pixels were returned, halt processing.
+\item The \textit{find\_obj} script performs object recognition and returns a list of matching pixel coordinates in the target image. In case of several pixels, the average is calculated. If no pixels were returned, halt processing.
 \item Thresholding and labeling on the target image in order to convert it to a list of regions.
 \item Erosion to eliminate regions that are too small.
 \item Dilatation to bring the regions that remain back to their original size.
@@ -342,102 +340,87 @@ The image processing pipeline performs the following operations:
 \item Perform OCR using the Tesseract command line tool on the cropped part and write results into a text file.
 \end{enumerate}
 
-TODO find\_obj was adapted from the OpenCV library object recognition example by Liu Liu \cite{opencv}
-
-TODO thresholding, labeling, erosion, dilatation, bounding box by Pandore \cite{pandore}
-
-TODO box extraction by Python script and ImageMagick convert functions \cite{imagemagick, python}
-
-TODO optical character recognition using Tesseract \cite{tesseract}
-
 \begin{center}
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.3]{box.eps} %TODO render with PDF
-\caption{TODO description}
+\caption{The query image used for object recognition.}
 \label{box}
 \end{figure}
 \end{center}
 
-\subsection{Results}
+In practice, I used this script to try and find the tablet shown in figure \ref{box}. If the tablet was found, the script attempts to extract the region containing it, and if that succeeds as well, it tries to recognise the handwritten text. For the first step, I adapted the \textit{find\_obj} example by Liu Liu from the Open Computer Vision library (OpenCV) \cite{opencv}, in order to retrieve the coordinates of matches in the target image. The script uses the library's implementation of Speed-Up Robust Feature (SURF) descriptor to find points in the target image that are similar to points in the query image \cite{bay2006surf}. An example can be seen in figure \ref{box_recognition}. Having found at least one matching point, we note that the image probably contains the object we are searching for. In this case, we move on to the next phase of processing: trying to extract the part of the image with the tablet.
+To achieve this, I used a sequence of operations implemented as command line tools in the Pandore library \cite{pandore}. Processing starts by first segmenting the image two regions by pixel value (thresholding - figure \ref{fig_thresholding_small}) and assigning a different label to each separate region (labeling - figure \ref{fig_labeling_small}). After this, the script applies morphological processing in the form of erosion - a process which "erodes" the edges of regions and causes some of them to disappear (see figure \ref{fig_erosion_small}) - and dilatation, which is the reverse of erosion, in order to restore the size of the remaining regions. The final step in this phase is to calculate bounding boxes for the regions (figure \ref{fig_bounding_box_small}). Now, if a region is found to encompass the pixel coordinates returned by \textit{find\_obj}, the script extracts the area defined by this region from the original image.
+If the script succeeded in extracting a region of the image, the Tesseract OCR tool is used to try and perform any text extraction \cite{tesseract}. 
 
-Processing the data-set with a 16-node Hadoop cluster running version 0.20.2 took \textbf{12,5 hours} ($\sim0.9$ seconds per image on average), with 8 worker nodes, this number increased to \textbf{24,2} ($\sim1.8$ seconds per image). Since this trend probably continues as the size of the cluster decreases, we can assume a total execution time of roughly 194 hours (at $\sim14$ seconds per image) to process all 48675 photos in the data-set. 
-
-\subsection{Problem statement}
-
-Extracting meaningful data from images is a non-trivial task. OCR, object recognition, identifying similar images, measuring image quality.
-
-Problem - how to feed images into MapReduce when the folder structure is complex? Hadoop does not provide a way for recursively going through the input folder and starts a new map task for every folder which creates unnecessary overhead. Creating a large SequenceFile to store all file data along with original full paths is not an option because it is too resource-intensive and the resulting file may be difficult to store. Flattening the structure and writing original paths into image meta-data also requires too much processing (reading and writing all files in the data set). Ignoring the path info altogether is not an option, because it provides a structuring/grouping of the data not encoded into meta-data.
-
-Problem - since images come from many different makes and models of cameras, and there is no easy way in distinguishing between meta-data that is useful in the context of this task and meta-data that encodes some cryptic information that is only used by some proprietary software (for example serial numbers and firmware version numbers) or simply the parameters of the camera at the time of taking the photo (such as Base ISO, Auto Focus settings etc.). While some of the latter meta-data may be useful when searching for similar images (for instance, one can group together photos taken with flash), there is no way of specifying which meta-data key refers to the correct value without first looking through a representative sampling (or even all) of the images and manually filtering out the meta-data keys to group together. (TODO maybe explain this better)
-
-TODO explain hadoop small file problem
-http://amilaparanawithana.blogspot.com/2012/06/small-file-problem-in-hadoop.html
-http://blog.cloudera.com/blog/2009/02/the-small-files-problem/
+%TODO box extraction by Python script and ImageMagick convert functions \cite{imagemagick, python}
 
 \begin{center}
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.3]{box_recognition.eps} %TODO render with PDF
 \caption{Screenshot of the original \textit{find\_obj} from OpenCV examples used to recognise the tablet from the photo.}
-\label{box}
+\label{box_recognition}
 \end{figure}
 \end{center}
-
 
 %\begin{center}
 \begin{figure}[h]
 \begin{subfigure}{.5\textwidth}
   \centering
   \includegraphics[scale=0.27]{input_small.eps} %TODO render with PDF
-  %\caption{Regular image}
-  %\label{fig:sub1}
+	\caption{}
+	\label{fig_input_small}  
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
   \includegraphics[scale=0.27]{thresholding_small.eps} %TODO render with PDF
-  %\caption{A subfigure}
-  %\label{fig:sub2}
+	\caption{}
+	\label{fig_thresholding_small}   
 \end{subfigure}
 \\
 \\
 \begin{subfigure}{.5\textwidth}
   \centering
   \includegraphics[scale=0.27]{labeling_small.eps} %TODO render with PDF
-  %\caption{Regular image}
-  %\label{fig:sub1}
+	\caption{}
+	\label{fig_labeling_small}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
   \includegraphics[scale=0.27]{erosion_small.eps} %TODO render with PDF
-  %\caption{A subfigure}
-  %\label{fig:sub2}
+  \caption{}
+	\label{fig_erosion_small}
 \end{subfigure}
 \\
 \\
 \begin{subfigure}{.5\textwidth}
   \centering
   \includegraphics[scale=0.27]{dilatation_small.eps} %TODO render with PDF
-  %\caption{Regular image}
-  %\label{fig:sub1}
+	\caption{}
+	\label{fig_dilatation_small}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
   \includegraphics[scale=0.27]{bounding_box_small.eps} %TODO render with PDF
-  %\caption{A subfigure}
-  %\label{fig:sub2}
+	\caption{}
+	\label{fig_bounding_box_small}
 \end{subfigure}
 \\
 \begin{subfigure}{1.0\textwidth}
   \centering
   \includegraphics[scale=0.3]{box_extracted.eps} %TODO render with PDF
-  %\caption{A subfigure}
-  %\label{fig:sub2}
+  \caption{}
+	\label{fig_box_extracted_small}
 \end{subfigure}
 \caption{Step-by-step example of the extracting the region containing the tablet.}
 \label{fig_pipeline_examples}
 \end{figure}
 %\end{center}
+
+\subsection{Results}
+
+Processing the data-set with a 16-node Hadoop cluster running version 0.20.2 took \textbf{12,5 hours} ($\sim0.9$ seconds per image on average), with 8 worker nodes, this number increased to \textbf{24,2} ($\sim1.8$ seconds per image). Since this trend probably continues as the size of the cluster decreases, we can assume a total execution time of roughly 194 hours (at $\sim14$ seconds per image) to process all 48675 photos in the data-set. 
 
 \section{Processing a large image using a local non-iterative algorithm}
 
