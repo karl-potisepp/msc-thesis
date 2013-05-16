@@ -420,7 +420,7 @@ If the script succeeded in extracting a region of the image, the Tesseract OCR t
 
 \subsection{Results}
 
-Processing the data-set with a 16-node Hadoop cluster running version 0.20.2 took \textbf{12,5 hours} ($\sim0.9$ seconds per image on average), with 8 worker nodes, this number increased to \textbf{24,2} ($\sim1.8$ seconds per image). Since this trend probably continues as the size of the cluster decreases, we can assume a total execution time of roughly 194 hours (at $\sim14$ seconds per image) to process all 48675 photos in the data-set. 
+Processing the data-set with a 16-node Hadoop cluster running version 0.20.2 took \textbf{12,5 hours} ($\sim0.9$ seconds per image on average), with 8 worker nodes, this number increased to \textbf{24,2} ($\sim1.8$ seconds per image). Since this trend probably continues as the size of the cluster decreases, we can assume a total execution time of roughly 194 hours (at $\sim14$ seconds per image) - roughly 8 days - to process all 48675 photos in the data-set.
 
 \section{Processing a large image using a local non-iterative algorithm}
 
@@ -697,11 +697,9 @@ The results of comparing performance between Hadoop version 0.20.2 and 1.0.3 can
 %\subsubsection{ImageJ}
 %For processing images while working on the practical part of this thesis, I used the ImageJ library. It is a freely available image processing application written in Java and developed by the National Institutes of Health \cite{imagej}. It supports the processing and analysis of a wide variety of image types (8-, 16-, 32-bit RGB/black \& white images) and many commonly used image file formats such as PNG, TIFF and JPEG.
 
-
-
 \chapter{Overview and discussion}
 
-This thesis does blabla and provides blabla with regard to MapReduce. 
+In this thesis, I have described an approach to distributed image processing using the MapReduce model, along with two examples of practical application using the Apache Hadoop framework. I have also provided a general classification of image processing algorithms and explained some of the basic issues that should be taken into account when considering methods of parallelisation. 
 
 TODO for iterative algorithms, Twister HaLoop or Spark may be more usable
 
