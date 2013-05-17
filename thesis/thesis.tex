@@ -73,16 +73,7 @@ In many cases the recorded media will be consumed using a different device (for 
 
 For solving processing tasks involving data of this scale, engineers at Google (the parent company of YouTube) designed the MapReduce model of distributed computing, of which Apache Hadoop is the most popular open source implementation. It is well known that using the MapReduce model is a good solution for many problems, however judging from the work done in the field of distributed computing with regard to image processing, the suitability of the model for this application not very well known. In this thesis I will describe the MapReduce model, it's implementation in the form of Hadoop, and explore the feasibility of using this technology for doing large scale image processing.
 
-The rest of this work is structured as follows. In the next sections I will describe in more detail the terminology and the problem at hand, give a brief overview of previous work in this area. Chapter 2 will focus on describing the MapReduce model and the specifics of it's implementation in Apache Hadoop. In chapter 4 I will look at two different practical use cases for applying MapReduce to large scale image data. The fifth and final chapter provides an overview of the results and outputs of this thesis. TODO obviously rewrite this part after the structure finalised. %TODO
-
-
-%Possible subtopics:
-%\begin{itemize}
-%	\item Microscope photo processing with bilateral filter - Datexim SAS (ENSICAEN)
-%	\item de-noising satellite images (maybe)
-%	\item Classification and metadata extraction from archaeological excavation data (TO BE ELABORATED)- Graeme Earl and Hembo Pagi (U of Southampton)
-	
-%\end{itemize}
+The rest of this work is structured as follows. In the next sections I will describe in more detail the terminology and the problem at hand, chapter 2 will give a brief overview of previous work in this area, describe the MapReduce model and Hadoop. Chapter 3 will focus on describing the two practical use cases, and finally chapters 4 and 5 present an overview of the results and propose future research directions. (TODO obviously rewrite this part after the structure finalised.) %TODO
 
 \section{Problem statement}
 
@@ -238,7 +229,9 @@ Since the framework already comes with some basic implementations for all these 
 One of the integral parts of a Hadoop cluster is the Hadoop Distributed File System (HDFS). Inspired by the Google File System, it's purpose is to provide a fault-tolerant storage structure capable of holding large amounts of data, allow for fast access of said data, and provide a way for MapReduce to perform computations on the same location as the data \cite{ghemawat2003google,borthakur2007hadoop}. 
 
 An important aspect of HDFS with regard to image processing is it's approach in storing files in blocks. Namely, while the block size of a regular file system - such as ext3 - is 1 to 8 kilobytes depending on the configuration, with HDFS, the default is 64 megabytes \cite{ext3}. There are two reasons for this design: as the blocks are written to physical storage in a contiguous manner, they can also be read with minimal disk seeking times, and because the file system is geared towards storing very large files, a larger block size ensures that storage of meta-data such as read/write permissions and physical locations of individual blocks creates less overhead. 
+
 Block size is somewhat important with regard to processing images, since if an image that is too big is uploaded to HDFS, there is no guarantee that all of it's blocks would be stored in the same physical location. Since a Map or Reduce task would then have to retrieve all of it's blocks before processing, the idea behind executing tasks that are local with regard to the data is lost: the speed of reading input data now depends on the network. Therefore, in order to ensure optimal processing speed, images should fit inside the HDFS block size. This is not a problem with most regular images, as it is easily possible to configure the cluster with a block size of even 128 megabytes or more, however increasing this parameter past a certain point may not have the desired effects. Also, as discussed before, processing very large images sets considerable memory requirements to the computers. For these reasons, splitting large images into manageable parts is the best solution.
+
 On the other hand, when dealing with a data-set of many small images, simply uploading them to HDFS results in the creation of a separate block for each file. Since a given Map or Reduce task operates so that it uses it's defined InputFormat to read data one block at a time, having many small blocks increases the overhead with regard to these operations. In these cases, it is standard practice to first store the data using a \textit{SequenceFile}. This file format is specifically geared towards storing Key-Value pairs which MapReduce operates on, and when loaded to HDFS, these files are automatically split into blocks, so that each block is independently readable. There is a caveat, however, with regard to the files that are located on the "edge" of the split. In order to illustrate this, I uploaded a SequenceFile with 3 images - 30 megabytes each - to HDFS with a configured block size of 50 megabytes. Quering the uploaded file with the Hadoop \textit{fsck} tool, I found that instead of writing the file as three blocks, each containing a full image, it was split into two blocks, so that one image ended up divided into two. This could negatively affect the performance of a job, since a Map or Reduce task would need to read both blocks to assemble the full image.
 
 Most results presented in this thesis were attained with Hadoop version 0.20.2. While - at the time of writing this - there are several more current stable releases available, this choice was made because of the need to analyse the log files of completed MapReduce jobs using the Starfish Log Analyzer, developed by Herodotou et al. \cite{herodotou2011starfish}. To find out whether there are any drastic changes in performance in newer versions of Hadoop, some tests were also run with version 1.0.3, however no significant improvement was found.
@@ -261,11 +254,13 @@ Most results presented in this thesis were attained with Hadoop version 0.20.2. 
 \chapter{Image processing with MapReduce in practice}
 
 In this chapter, I will describe two example use cases inspired by real-world image processing problems. The first one deals with the application of an image processing pipeline geared towards object and text recognition on a photography data-set. In the second scenario, I describe running a local non-iterative algorithm on a single large image. In essence, these examples cover both general cases of large scale image processing: a data-set of regular images too big to process on a single computer, and an image with dimensions great enough to warrant distributed processing.
+
 Since this thesis is aimed towards exploring the feasibility of distributed image processing using MapReduce, it should be noted the practical examples presented in the following text are meant to be a proof of concept, not robust and effective solutions for clearly defined problems. The following should be treated more as a broad description as to how to approach solving these sorts of problems using MapReduce and Hadoop.
 
 \section{Processing a large data set of regular images}
 
-In this section, we look at the subject of distributed image processing in the example case of a large data-set of regular-sized images. The data set consists of 48675 JPEG encoded images (a total of 265GB) taken across the span of 9 years at the Portus archaeological excavation site near Rome, Italy \cite{portusproject}. As the purpose of this data set is to provide a visual documentation of the activities of the project as thoroughly as possible, the subject matter of the photographs is rather varied: a random selection of images would probably contain examples of aerial photos, pictures of locations untouched by excavations and of areas already dug up and processed, among other things. In order to be able to use this in further work, it is necessary to organise it into a more logical structure and equip individual images with meta-data which can later be used to build indexes and allow searching. However, as the size of data grows, so does the amount of work necessary to file everything where it belongs. 
+In this section, we look at the subject of distributed image processing in the example case of a large data-set of regular-sized images. The data set consists of 48675 JPEG encoded images (a total of 265GB) taken across the span of 9 years at the Portus archaeological excavation site near Rome, Italy \cite{portusproject}. As the purpose of this data set is to provide a visual documentation of the activities of the project as thoroughly as possible, the subject matter of the photographs is rather varied: a random selection of images would probably contain examples of aerial photos, pictures of locations untouched by excavations and of areas already dug up and processed, among other things. In order to be able to use this in further work, it is necessary to organise it into a more logical structure and equip individual images with meta-data which can later be used to build indexes and allow searching. However, as the size of data grows, so does the amount of work necessary to file everything where it belongs.
+
 Since traditionally there has been no easily-adaptable solution for doing this, the task of analysis and classification of all this information has fallen on humans. On the other hand, taking into account the advances in image processing techniques and general increase in available computing power, there may be ways to speed up this sort of processing, especially with regard to things that have in recent times been shown to be possible using computers, such as object and text recognition. From the perspective of a human, these are often trivial and repetitive tasks, and therefore should be automated. In the following, I will provide some examples of these images and outline some of the ways data- and image processing technologies could help solve these issues.
 
 In order to proceed into specific approaches of extracting meaningful data, it is first important to look at some of the tasks which could be automated in the analysis and processing of this data-set. While methods of computer vision allow fairly complicated tasks to be solved, such as generating 3-dimensional models from single still images and utilising the internet for training object recognition models, in this case, our focus is much simpler \cite{sudo2009associative,saxena2008}. Discussing this matter with the archaeologists working with this data, and later condensing the list of issues that could feasibly be solved (both with regards to my understanding of the capabilities of current technology and the amount of resources at my disposal), I decided on the following:
@@ -281,6 +276,7 @@ Before going into the specifics of solving these three tasks, it is important to
 \subsubsection{Classification by Exif meta-data and folder structure}
 
 The first and probably the easiest way to approach the task of classifying and structuring a data set of this size is by taking advantage of all the information already present in the form of meta-data defined by the exchangeable image file format standard (Exif) \cite{japan2002jeita}. A simple example -already implemented in many pieces of photo management software - is grouping photos according to the creation date, which is a common meta-data tag. Moving further, it is a reasonable assumption that the initial step of sorting images has already taken place when the photographer moved the photos from the internal memory of the camera to a directory on their computer's file system. This means that even if only one image in a given subdirectory of the dataset has some specific tag-value pair (for instance tying the images to some specific geographic location), it could easily be added to all the other images in that subfolder, potentially reducing the workload of a human, who then has to only tag one image of a given group.
+
 However, this only solves part of the problem, because we are also interested in grouping photos by geographic location and - ultimately - content. As the pictures are taken with cameras that do not possess a receiver that allows them to automatically tag images with geospatial coordinates, nor can they provide any useful description of photo content aside from the raw data itself, this information has to be extracted by either automatic or manual processing of image data. 
 
 \subsubsection{Information extraction by object and text recognition}
@@ -483,7 +479,7 @@ One of the simplest local algorithms in image processing is Gaussian blur (also 
 
 			\For{$x_\sigma = x-\sigma ... x+\sigma$}{
 				\For{$y_\sigma = y-\sigma ... y+\sigma$}{
-					$O(x,y) += I(x_\sigma, y_\sigma)*G_\sigma(\| (x_\sigma, y_\sigma)-(x, y) \|)$
+					$O(x,y) += I(x_\sigma, y_\sigma)G_\sigma(\| (x_\sigma, y_\sigma)-(x, y) \|)$
 				}
 			}
 		}
@@ -492,7 +488,6 @@ One of the simplest local algorithms in image processing is Gaussian blur (also 
 \end{center}
 
 Here, $I(x,y)$ and $O(x,y)$ signify pixels of input and output images at width and height coordinates $x$ and $y$ respectively, $\| (x_\sigma, y_\sigma)-(x, y) \|$ represents the distance between the pixel being processed and the pixel at $(x_\sigma, y_\sigma)$. $G_\sigma(x)$ is the Gaussian function
-
 \begin{center}
 $G_\sigma(x) = \frac{1}{2\pi\sigma^2} \exp(-\frac{x^2}{2\sigma^2})$.
 \end{center}
@@ -545,9 +540,9 @@ The improvement introduced to the Gaussian filter by the bilateral filter is an 
 			
 			\For{$x_\sigma = x-\sigma ... x+\sigma$}{
 				\For{$y_\sigma = y-\sigma ... y+\sigma$}{
-					$norm += G_{\sigma_s}(\| (x_\sigma, y_\sigma)-(x, y) \|)*G_{\sigma_r}(I(x_\sigma, y_\sigma)-I(x, y))$
+					$norm += G_{\sigma_s}(\| (x_\sigma, y_\sigma)-(x, y) \|)G_{\sigma_r}(I(x_\sigma, y_\sigma)-I(x, y))$
 
-					$O(x,y) += I(x_\sigma, y_\sigma)*G_{\sigma_s}(\| (x_\sigma, y_\sigma)-(x, y) \|)*G_{\sigma_r}(I(x_\sigma, y_\sigma)-I(x, y))$
+					$O(x,y) += I(x_\sigma, y_\sigma)G_{\sigma_s}(\| (x_\sigma, y_\sigma)-(x, y) \|)G_{\sigma_r}(I(x_\sigma, y_\sigma)-I(x, y))$
 				}
 			}
 			$O(x,y) = \frac{O(x,y)}{norm}$
@@ -697,11 +692,15 @@ The results of comparing performance between Hadoop version 0.20.2 and 1.0.3 can
 %\subsubsection{ImageJ}
 %For processing images while working on the practical part of this thesis, I used the ImageJ library. It is a freely available image processing application written in Java and developed by the National Institutes of Health \cite{imagej}. It supports the processing and analysis of a wide variety of image types (8-, 16-, 32-bit RGB/black \& white images) and many commonly used image file formats such as PNG, TIFF and JPEG.
 
-\chapter{Overview and discussion}
+\chapter{Summary}
 
-In this thesis, I have described an approach to distributed image processing using the MapReduce model, along with two examples of practical application using the Apache Hadoop framework. I have also provided a general classification of image processing algorithms and explained some of the basic issues that should be taken into account when considering methods of parallelisation. 
+In this thesis, I have described an approach to distributed image processing using the MapReduce model, along with two examples of practical application using the Apache Hadoop framework. I have also provided a general classification of image processing algorithms and explained some of the basic issues that should be taken into account when considering methods of parallelisation. When discussing all of these subjects, I have focused on two-dimensional images with three color channels, which is essentially the vast majority of data that is commonly thought of as an "image". Finally, I also make a distinction between the tasks of processing a large data-set of regular-sized images and one large image with regard to the previously defined classes of algorithms.
+ 
+First, in the case of working with a data-set of regular images, there are almost no insurmountable issues with adapting any kind of algorithm to the MapReduce model. The divide-and-conquer approach of splitting up the data-set for independent processing works well in frameworks such as Hadoop, and - as shown in the practical example - there are almost no technical barriers for integrating MapReduce programs with software written in any language, as the list of supported platforms for Hadoop includes Linux, Windows, BSD, Mac OS/X and OpenSolaris \cite{hadoopfaq}. It is to be noted, though, that in my analysis, I did not consider any algorithms which require more than one image as input. This excludes, for example, clustering algorithms which need to compare images to each other. A potential theme for future work would be to determine in more detail the characteristics of these algorithms in order to see whether applying the MapReduce model is a good method of distributing this processing, or should altogether different solutions be proposed.
 
-TODO for iterative algorithms, Twister HaLoop or Spark may be more usable
+Moving on to the case of processing images, whose dimensions are large enough to require special attention regardless of the nature of the task itself, the applicability of MapReduce is less feasible. With local non-iterative algorithms, it suffices to split the input into pieces, process the pieces, and then assemble the final output image. The other three cases are not so trivial: the communication requirements of these algorithms imply running many MapReduce jobs, which is currently unfeasible when using Hadoop. However, these problems may be solved by using implementations of MapReduce that are more suitable for iterative processing, such as Twister, HaLoop or Spark, or increases in network bandwidth and latency \cite{ekanayake2010twister,bu2010haloop,zaharia2010spark}. 
+
+\chapter{Future work}
 
 \clearpage
 \addcontentsline{toc}{chapter}{Bibliography}
