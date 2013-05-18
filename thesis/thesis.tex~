@@ -287,13 +287,20 @@ Before going into the specifics of solving these three tasks, it is important to
 
 \subsubsection{Classification by Exif meta-data and folder structure}
 
+\begin{center}
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.3]{archaeology_ex3.eps} %TODO render with PDF
+\caption[A photo of random scenery]{A photo of random scenery. Extracting any useful information from here with image processing is practically impossible at the current state of technology. }
+\label{archaeology_ex3}
+\end{figure}
+\end{center}
+
 The first and probably the easiest way to approach the task of classifying and structuring a data set of this size is by taking advantage of all the information already present in the form of meta-data defined by the exchangeable image file format standard (Exif) \cite{japan2002jeita}. A simple example -already implemented in many pieces of photo management software - is grouping photos according to the creation date, which is a common meta-data tag. Moving further, it is a reasonable assumption that the initial step of sorting images has already taken place when the photographer moved the photos from the internal memory of the camera to a directory on their computer's file system. This means that even if only one image in a given subdirectory of the dataset has some specific tag-value pair (for instance tying the images to some specific geographic location), it could easily be added to all the other images in that subfolder, potentially reducing the workload of a human, who then has to only tag one image of a given group.
 
 However, this only solves part of the problem, because we are also interested in grouping photos by geographic location and - ultimately - content. As the pictures are taken with cameras that do not possess a receiver that allows them to automatically tag images with geospatial coordinates, nor can they provide any useful description of photo content aside from the raw data itself, this information has to be extracted by either automatic or manual processing of image data. 
 
 \subsubsection{Information extraction by object and text recognition}
-
-Extracting Exif meta-data and making assumptions about the classification of images based on their location in the file system is connected with image processing only because the Exif standard deals with image files - this processing does not take the actual pixel data into account. However, as seen in figures \ref{archaeology_ex1} and \ref{archaeology_ex2}, there is definitely some information stored within this data that could be feasibly extracted programmatically. In the case of the first example - a photo of what appears to be a unearthed Roman coin - we would be interested in extracting the text on the paper and storing in within the Exif meta-data structure of that image. On the second image, the same sort of data is written by hand on a small blackboard, accompanied by markers to allow a human observer determine both the size of the object and the direction in which the photo was taken. It is important to note that this task is conceptually be split in two: trying to determine whether the objects are present in the image and if they are, attempting to extract the information they encode. The idea behind this approach is that even if we fail to automatically retrieve all the necessary data, knowledge that the image (or a certain part of the image) contains something of interest already helps narrow down the amount of images a human worker has to process.
 
 \begin{center}
 \begin{figure}[h]
@@ -304,21 +311,14 @@ Extracting Exif meta-data and making assumptions about the classification of ima
 \end{figure}
 \end{center}
 
+Extracting Exif meta-data and making assumptions about the classification of images based on their location in the file system is connected with image processing only because the Exif standard deals with image files - this processing does not take the actual pixel data into account. However, as seen in figures \ref{archaeology_ex1} and \ref{archaeology_ex2}, there is definitely some information stored within this data that could be feasibly extracted programmatically. In the case of the first example - a photo of what appears to be a unearthed Roman coin - we would be interested in extracting the text on the paper and storing in within the Exif meta-data structure of that image. On the second image, the same sort of data is written by hand on a small blackboard, accompanied by markers to allow a human observer determine both the size of the object and the direction in which the photo was taken. It is important to note that this task is conceptually be split in two: trying to determine whether the objects are present in the image and if they are, attempting to extract the information they encode. The idea behind this approach is that even if we fail to automatically retrieve all the necessary data, knowledge that the image (or a certain part of the image) contains something of interest already helps narrow down the amount of images a human worker has to process.
+
 \begin{center}
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.5]{archaeology_ex2.eps} %TODO render with PDF
 \caption[A photo of an excavation site]{A photo of an excavation site with a chalkboard and measuring artifacts. Extracting useful information from pictures like this is more difficult than is the case in figure \ref{archaeology_ex1}, because of recognition of handwritten text is complicated. }
 \label{archaeology_ex2}
-\end{figure}
-\end{center}
-
-\begin{center}
-\begin{figure}[h]
-\centering
-\includegraphics[scale=0.3]{archaeology_ex3.eps} %TODO render with PDF
-\caption[A photo of random scenery]{A photo of random scenery. Extracting any useful information from here is practically impossible at the current state of technology. }
-\label{archaeology_ex3}
 \end{figure}
 \end{center}
 
@@ -332,9 +332,19 @@ Extracting Exif meta-data and making assumptions about the classification of ima
 
 As I mentioned before, in this case, the Hadoop framework is used mostly to ensure the distribution of data, whereas the processing itself is handled by a shell script which is executed from within the MapReduce job. This solution carries the additional overhead of having to write individual images back to the local file system of the computing nodes, as reading data straight from HDFS is non-trivial to implement in a shell script. However, this method allowed me to quickly develop a working distributed image processing pipeline, as I could simply chain together different existing tools without having to adapt anything into Java.
 The first step in defining the MapReduce program for this task was figuring out the proper InputFormat to use. In this case, following the SequenceFile approach described earlier, I packaged the 48675 image files into 196 Key-Value collections, where the Key was set as the full path of the file with regard to the data-set, and Value as simply the contents of the file as a byte array.
-The function of the Mapper in this case can be summarised to this: it writes the image to local storage, extracts Exif meta-data, starts the external shell script which runs the image through the processing pipeline, reads any output from the script, and returns all meta-data as Values. The Reducer simply sorts the data for a given image and formats it, so that the final output is written to disk in text format, and could further be treated as a table of comma separated values (CSV). For meta-data extraction, I used Drew Noakes' metadata-extractor \cite{metadataextractor}. In the following paragraphs, I will explain more about the function of the shell script, which does most of the heavy lifting with regard to image processing in this scenario.
+The function of the Mapper in this case can be summarised to this: it writes the image to local storage, extracts Exif meta-data, starts the external shell script which runs the image through the processing pipeline, reads any output from the script, and returns all meta-data as Values. The Reducer simply sorts the data for a given image and formats it, so that the final output is written to disk in text format, and could further be treated as a table of comma separated values (CSV). For meta-data extraction, I used the metadata-extractor Java library \cite{metadataextractor}. In the following paragraphs, I will explain more about the function of the shell script, which does most of the heavy lifting with regard to image processing in this scenario.
 
 \subsubsection{Image processing pipeline}
+\label{pipeline}
+
+\begin{center}
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.3]{box_recognition.eps} %TODO render with PDF
+\caption[Screenshot of \textit{find\_obj}]{Screenshot of the original \textit{find\_obj} from OpenCV examples used to recognise the tablet from the photo.}
+\label{box_recognition}
+\end{figure}
+\end{center}
 
 The main aim of the image processing pipeline is to provide a proof-of-concept solution to the tasks of recognising certain objects and extracting information by way of optical character recognition (OCR). As mentioned before, this is by no means a working solution that is ready to be applied in real world situations. However, a superficial analysis of the results suggests that, with some optimisation and tuning, it is suitable for extracting some information out of the data-set. The following is a rough description of each of the steps in the process:
 \begin{enumerate}
@@ -357,20 +367,13 @@ The main aim of the image processing pipeline is to provide a proof-of-concept s
 \end{figure}
 \end{center}
 
-In practice, I used this script to try and find the tablet shown in figure \ref{box}. If the tablet was found, the script attempts to extract the region containing it, and if that succeeds as well, it tries to recognise the handwritten text. For the first step, I adapted the \textit{find\_obj} example by Liu Liu from the Open Computer Vision library (OpenCV) \cite{opencv}, in order to retrieve the coordinates of matches in the target image. The script uses the library's implementation of Speed-Up Robust Feature (SURF) descriptor to find points in the target image that are similar to points in the query image \cite{bay2006surf}. An example can be seen in figure \ref{box_recognition}. Having found at least one matching point, we note that the image probably contains the object we are searching for. In this case, we move on to the next phase of processing: trying to extract the part of the image with the tablet.
-To achieve this, I used a sequence of operations implemented as command line tools in the Pandore library \cite{pandore}. Processing starts by first segmenting the image two regions by pixel value (thresholding - figure \ref{fig_thresholding_small}) and assigning a different label to each separate region (labeling - figure \ref{fig_labeling_small}). After this, the script applies morphological processing in the form of erosion - a process which "erodes" the edges of regions and causes some of them to disappear (see figure \ref{fig_erosion_small}) - and dilatation, which is the reverse of erosion, in order to restore the size of the remaining regions. The final step in this phase is to calculate bounding boxes for the regions (figure \ref{fig_bounding_box_small}). Now, if a region is found to encompass the pixel coordinates returned by \textit{find\_obj}, the script extracts the area defined by this region from the original image.
+In practice, I used this script to try and find the tablet shown in figure \ref{box}. If the tablet was found, the script attempts to extract the region containing it, and if that succeeds as well, it tries to recognise the handwritten text. For the first step, I adapted the \textit{find\_obj} example by Liu Liu from the Open Computer Vision library (OpenCV) \cite{opencv}, in order to retrieve the coordinates of matches in the target image. The script uses the library's implementation of Speed-Up Robust Feature (SURF) descriptor to find points in the target image that are similar to points in the query image \cite{bay2006surf}. An example can be seen in figure \ref{box_recognition}. 
+
+Having found at least one matching point, we note that the image probably contains the object we are searching for. In this case, we move on to the next phase of processing: trying to extract the part of the image with the tablet.
+To achieve this, I used a sequence of operations implemented as command line tools in the Pandore library \cite{pandore}. Processing starts by first segmenting the image two regions by pixel value (thresholding - figure \ref{fig_thresholding_small}) and assigning a different label to each separate region (labeling - figure \ref{fig_labeling_small}). After this, the script applies morphological processing in the form of erosion - a process which "erodes" the edges of regions and causes some of them to disappear (see figure \ref{fig_erosion_small}) - and dilatation, which is the reverse of erosion, in order to restore the size of the remaining regions. 
+
+The final step in this phase is to calculate bounding boxes for the regions (figure \ref{fig_bounding_box_small}). Now, if a region is found to encompass the pixel coordinates returned by \textit{find\_obj}, the script extracts the area defined by this region from the original image.
 If the script succeeded in extracting a region of the image, the Tesseract OCR tool is used to try and perform any text extraction \cite{tesseract}. 
-
-%TODO box extraction by Python script and ImageMagick convert functions \cite{imagemagick, python}
-
-\begin{center}
-\begin{figure}[h]
-\centering
-\includegraphics[scale=0.3]{box_recognition.eps} %TODO render with PDF
-\caption[Screenshot of \textit{find\_obj}]{Screenshot of the original \textit{find\_obj} from OpenCV examples used to recognise the tablet from the photo.}
-\label{box_recognition}
-\end{figure}
-\end{center}
 
 %\begin{center}
 \begin{figure}[h]
@@ -430,6 +433,7 @@ If the script succeeded in extracting a region of the image, the Tesseract OCR t
 
 Processing the data-set with a 16-node Hadoop cluster running version 0.20.2 took \textbf{12,5 hours} ($\sim0.9$ seconds per image on average), with 8 worker nodes, this number increased to \textbf{24,2} ($\sim1.8$ seconds per image). Since this trend probably continues as the size of the cluster decreases, we can assume a total execution time of roughly 194 hours (at $\sim14$ seconds per image) - roughly 8 days - to process all 48675 photos in the data-set.
 
+\clearpage
 \section{Processing a large image using a local non-iterative algorithm}
 
 In this section, I will describe a practical application of distributed image processing in the scenario of applying a local non-iterative algorithm on a image with large spatial dimensions. The rest of this section is structured as follows: first, a description of the image itself and the motivation behind the task. Further on, I will outline the divide-and-conquer approach used in splitting the image into manageable pieces, briefly describe the specifics of the MapReduce implementation of the algorithm and how it's performance was measured and compared with it's non-distributed (sequential) counterpart.
@@ -484,13 +488,13 @@ As image processing algorithms tend to operate on uncompressed images, using thi
 \begin{figure}[h]
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[scale=0.35]{Lenna.eps} %TODO render with PDF
+  \includegraphics[scale=0.3]{Lenna.eps} %TODO render with PDF
   \caption{}
   %\label{fig:sub1}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[scale=0.35]{Lenna_gaussian_10px.eps} %TODO render with PDF
+  \includegraphics[scale=0.3]{Lenna_gaussian_10px.eps} %TODO render with PDF
   \caption{}
   %\label{fig:sub2}
 \end{subfigure}
@@ -499,7 +503,7 @@ As image processing algorithms tend to operate on uncompressed images, using thi
 \begin{subfigure}{1.0\textwidth}
   \centering
 	%\begin{center}
-  \includegraphics[scale=0.73]{Lenna_bf_100_10.eps} %TODO render with PDF
+  \includegraphics[scale=0.3]{Lenna_bf_100_10.eps} %TODO render with PDF
 	%\end{center}
   \caption{}
   %\label{fig:sub2}
@@ -536,6 +540,7 @@ $G_\sigma(x) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp(-\frac{x^2}{2\sigma^2})$.
 Essentially, what happens to each pixel during the course of this algorithm, is that their values are re-calculated as a weighted sum of their neighboring pixels, and $\sigma$ specifies the range of this neighborhood. This is best visualised by thinking of pixels as cells and the image as the table - the $\sigma$-neighborhood of pixel $I(x,y)$ then is the group of cells extending $\sigma$ rows above and below, and $\sigma$ columns before and after the cell in focus (see figure \ref{fig_gaussian_blur}). Due to the characteristics of Gaussian distribution, as the distance $\| (x_\sigma, y_\sigma)-(x, y) \|$ between pixels increases, the weight decreases. This means that pixels further away contribute less to the new value of the pixel currently in focus, and pixels outside the $\sigma$-neighborhood of the pixel do not affect it's value at all. It is important to note here that the actual values of the pixels do not affect the calculations of the weights at all, and the $G_\sigma(x)$ can be pre-calculated as a matrix of weights, bringing the time complexity of the algorithm to $O(n)$, where $n$ is the amount of pixels in the image.
 
 \subsubsection{Naive bilateral filter algorithm}
+\label{bilateral_filter}
 
 The improvement introduced to the Gaussian filter by the bilateral filter is an additional weight term which takes into account the values of the $\sigma$-neighborhood of the pixel (see figures \ref{fig_gaussian_blur,fig_microscope} for an example). This requires the addition of another cycle over all the pixels in the image and leads us to the following formulation:
 
@@ -561,13 +566,20 @@ The improvement introduced to the Gaussian filter by the bilateral filter is an 
 \end{algorithm}
 \end{center}
 
-TODO correct the formulation
-
 \subsubsection{Fast O(1) bilateral filter algorithm}
 
 Since the bilateral filter in it's previously defined form has a time complexity of $O(|I|^2)$ (with $|I|$ as the number of pixels in the image), it is easy to see that it is a feasible approach for only smaller images, as processing time grows quadratically as the image size increases. Therefore, in order to provide a relevant evaluation of distributed image processing with regard to large images, I selected an existing implementation of an optimised bilateral filter algorithm, described by Chaudhury et al. in "Fast O(1) bilateral filtering using trigonometric range kernels" \cite{chaudhury2011fast}. The authors also provide an existing Java implementation in the form of an ImageJ plug-in, which I adapted into a Hadoop MapReduce program in order to be able to directly compare sequential and distributed performance \cite{imagej}.
 
 \subsection{Practical approach}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.8]{partitioning.eps} %TODO render with PDF
+%\includegraphics[scale=0.8]{local_iterative.pdf} %render with PDF
+\caption[A diagram illustrating the concept of partitioning]{A diagram illustrating the concept of partitioning. Bright blue signifies the overlap necessary to calculate all the X-s on the left and right parts. Later the pieces can be merged and the overlap discarded.}
+\label{fig_partitioning}
+\end{center}
+\end{figure}
 
 Due to the size of the image in question, the first step in the processing chain was to split it into parts small enough to fit into HDFS blocks, but big enough to maximally take advantage of the processing power: as each Map or Reduce task requires some resources to start and shut down, it is in our interests to minimise the number of these tasks. When running my experiments, I used a Hadoop cluster set up with a HDFS block size of 64 megabytes. Therefore, when splitting the big image into parts (each a PNG file), I used the following reasoning:
 
@@ -578,15 +590,6 @@ Due to the size of the image in question, the first step in the processing chain
 \end{itemize}
 
 Before partitioning the image based on this idea, it is also necessary to take into account the characteristics of the processing we are about to apply. Namely, we have to ensure that the results of this divide-and-conquer type approach are identical to the results we would attain by processing the image without partitioning. In this case, we are dealing with a local non-iterative algorithm, therefore this is relatively straightforward: we only have to make sure that adjacent parts of the image have an overlap big enough, so that when the algorithm calculates new values for pixels at the edge of the partial images, it still has the values of their neighboring pixels. For example, in the case of applying Gaussian blur with a radius of 5, the initial image should be partitioned so that individual pieces have an overlap of at least 5 pixels.
-
-\begin{figure}[h]
-\begin{center}
-\includegraphics[scale=0.8]{partitioning.eps} %TODO render with PDF
-%\includegraphics[scale=0.8]{local_iterative.pdf} %render with PDF
-\caption[A diagram illustrating the concept of partitioning]{A diagram illustrating the concept of partitioning. Bright blue signifies the overlap necessary to calculate all the X-s on the left and right parts. Later the pieces can be merged and the overlap discarded.}
-\label{fig_partitioning}
-\end{center}
-\end{figure}
 
 In the spirit of this analysis, I split the 6.99 gigapixel photo into pieces using the following algorithm:
 
@@ -625,8 +628,6 @@ Having partitioned the image into pieces that fit into memory, the next step is 
 
 \subsubsection{Testing}
 
-All tests were run on a Hadoop cluster with one m1.small virtual machine as the master node and m2.xlarge virtual machines as computing nodes on the Amazon EC2 cloud (see figure \ref{fig_instance_types} for details on the instance types). With regard to the configuration of the Hadoop cluster, most parameters remained set to the default values both in runs with version 0.20.2 and 1.0.3. The only exceptions were setting the HDFS block size to 64 megabytes, and setting the maximum memory for Map and Reduce tasks to 15 000 megabytes. The choice of m2.xlarge instances for computing nodes was directly influenced by the requirements of the algorithm - all attempts to run the tests with m1.small instances failed because there was not enough memory available. Using m2.xlarge eliminated these problems and due to the number of cores, also allowed simultaneous processing of two images. In the following, I will present the results of testing the fast O(1) bilateral filter algorithm in various configurations.
-
 \begin{figure}[h]
 \begin{center}
 \begin{tabular}{r | l}
@@ -650,7 +651,28 @@ Platform & 64-bit \\
 \end{center}
 \end{figure}
 
+All tests were run on a Hadoop cluster with one m1.small virtual machine as the master node and m2.xlarge virtual machines as computing nodes on the Amazon EC2 cloud (see figure \ref{fig_instance_types} for details on the instance types). With regard to the configuration of the Hadoop cluster, most parameters remained set to the default values both in runs with version 0.20.2 and 1.0.3. The only exceptions were setting the HDFS block size to 64 megabytes, and setting the maximum memory for Map and Reduce tasks to 15 000 megabytes. The choice of m2.xlarge instances for computing nodes was directly influenced by the requirements of the algorithm - all attempts to run the tests with m1.small instances failed because there was not enough memory available. Using m2.xlarge eliminated these problems and due to the number of cores, also allowed simultaneous processing of two images. In the following, I will present the results of testing the fast O(1) bilateral filter algorithm in various configurations.
+
 The principal results of testing can be seen in figure \ref{bf_speedup}. In order to best compare the MapReduce adaptation of the algorithm to it's performance as a stand-alone ImageJ plugin, I wrote a shell script which started an ImageJ macro to sequentially process all the parts of the original image in a m2.xlarge instance. Since the technical parameters of the instance were identical to the computing nodes', this gives us a good estimate of how much the Hadoop framework affected the speed of the computations. As can be seen from the chart in figure \ref{bf_speedup}, the decrease in speed is noticeable, but small. Considering that Hadoop also provides fault-tolerance, load balancing and handles the distribution of data all by itself, it can be argued that this sort of approach to image processing has justified itself, and could reliably used as a solution for similar problems.
+
+The results of comparing performance between Hadoop version 0.20.2 and 1.0.3 can be seen in figure \ref{fig_hadoop_version_compare}.
+
+\begin{figure}[h]
+\begin{center}
+\begin{tabular}{c | c | c}
+Number of nodes & Wall time, 0.20.2 (s.) & Wall time, 1.0.3 (s.) \\ 
+\hline
+8 & 3031.2 & 3286.9 \\
+16 & 1557.2 & 1693.4 \\
+\end{tabular}
+\caption[Comparison between Hadoop 0.20.2 and 1.0.3]{Comparison in processing time between a cluster running on Hadoop version 0.20.2 and 1.0.3. In the latter case, the result is an average of five test runs.}
+\label{fig_hadoop_version_compare}
+\end{center}
+\end{figure}
+
+\subsection{Summary}
+
+In this chapter, I have described two example scenarios of applying MapReduce-based distributed image processing on both cases of large-scale data-sets (large set of regular images, one large image). While the solutions described are mainly geared to be proof-of-concept, they mimick the characteristics of some real-world tasks that would be attempted on these data-sets, and can therefore be used as a rough estimate when considering adapting any similar tasks to this model of distributed computing.
 
 \begin{figure}[h]
 \begin{subfigure}{.5\textwidth}
@@ -682,39 +704,31 @@ The principal results of testing can be seen in figure \ref{bf_speedup}. In orde
 \label{bf_speedup}
 \end{figure}
 
-\begin{figure}[h]
-\begin{center}
-\begin{tabular}{c | c | c}
-Number of nodes & Wall time, 0.20.2 (s.) & Wall time, 1.0.3 (s.) \\ 
-\hline
-8 & 3031.2 & 3286.9 \\
-16 & 1557.2 & 1693.4 \\
-\end{tabular}
-\caption[Comparison between Hadoop 0.20.2 and 1.0.3]{Comparison in processing time between a cluster running on Hadoop version 0.20.2 and 1.0.3. In the latter case, the result is an average of five test runs.}
-\label{fig_hadoop_version_compare}
-\end{center}
-\end{figure}
 
-The results of comparing performance between Hadoop version 0.20.2 and 1.0.3 can be seen in figure \ref{fig_hadoop_version_compare}.
 
-\subsection{Summary}
 
-In this chapter, I have described two example scenarios of applying MapReduce-based distributed image processing on both cases of large-scale data-sets (large set of regular images, one large image). While the solutions described are mainly geared to be proof-of-concept, they mimick the characteristics of some real-world tasks that would be attempted on these data-sets, and can therefore be used as a rough estimate when considering adapting any similar tasks to this model of distributed computing.
+
 
 %\subsection{Technologies used}
 
 %\subsubsection{ImageJ}
 %For processing images while working on the practical part of this thesis, I used the ImageJ library. It is a freely available image processing application written in Java and developed by the National Institutes of Health \cite{imagej}. It supports the processing and analysis of a wide variety of image types (8-, 16-, 32-bit RGB/black \& white images) and many commonly used image file formats such as PNG, TIFF and JPEG.
 
-\chapter{Summary}
+\chapter{Conclusions}
 
 In this thesis, I have described an approach to distributed image processing using the MapReduce model, along with two examples of practical application using the Apache Hadoop framework. I have also provided a general classification of image processing algorithms and explained some of the basic issues that should be taken into account when considering methods of parallelisation. When discussing all of these subjects, I have focused on two-dimensional images with three color channels, which is essentially the vast majority of data that is commonly thought of as an "image". Finally, I also make a distinction between the tasks of processing a large data-set of regular-sized images and one large image with regard to the previously defined classes of algorithms.
  
-First, in the case of working with a data-set of regular images, there are almost no insurmountable issues with adapting any kind of algorithm to the MapReduce model. The divide-and-conquer approach of splitting up the data-set for independent processing works well in frameworks such as Hadoop, and - as shown in the practical example - there are almost no technical barriers for integrating MapReduce programs with software written in any language, as the list of supported platforms for Hadoop includes Linux, Windows, BSD, Mac OS/X and OpenSolaris \cite{hadoopfaq}. It is to be noted, though, that in my analysis, I did not consider any algorithms which require more than one image as input. This excludes, for example, clustering algorithms which need to compare images to each other. A potential theme for future work would be to determine in more detail the characteristics of these algorithms in order to see whether applying the MapReduce model is a good method of distributing this processing, or should altogether different solutions be proposed.
+First, in the case of working with a data-set of regular images, there are almost no insurmountable issues with adapting any kind of algorithm to the MapReduce model. The divide-and-conquer approach of splitting up the data-set for independent processing works well in frameworks such as Hadoop, and - as shown in the practical example - there are almost no technical barriers for integrating MapReduce programs with software written in any language, as the list of supported platforms for Hadoop includes Linux, Windows, BSD, Mac OS/X and OpenSolaris \cite{hadoopfaq}. It is to be noted, though, that in my analysis, I did not consider any algorithms which require more than one image as input. This definition excludes, for example, clustering algorithms which need to compare images to each other. Another restriction stems from the Hadoop framework itself: no matter the size of input data, the start-up time of a job remains at roughly 17 seconds.
 
-Moving on to the case of processing images, whose dimensions are large enough to require special attention regardless of the nature of the task itself, the applicability of MapReduce is less feasible. With local non-iterative algorithms, it suffices to split the input into pieces, process the pieces, and then assemble the final output image. The other three cases are not so trivial: the communication requirements of these algorithms imply running many MapReduce jobs, which is currently unfeasible when using Hadoop. However, these problems may be solved by using implementations of MapReduce that are more suitable for iterative processing, such as Twister, HaLoop or Spark, or increases in network bandwidth and latency \cite{ekanayake2010twister,bu2010haloop,zaharia2010spark}. 
+Moving on to the case of processing images with dimensions large enough to require special attention regardless of the nature of the task itself, the applicability of MapReduce is less feasible. With local non-iterative algorithms, it suffices to split the input into pieces, process the pieces, and then assemble the final output image. The other three cases are not so trivial: the communication requirements of these algorithms imply running many MapReduce jobs in rapid succession. As mentioned in the previous paragraph, it is the delay in initiating a MapReduce job that makes this approach unattractive for any algorithm involving many short iterations. With algorithms that have less iterations or iterations that last longer, adaptation to MapReduce might be an option.
+
+With regard to the time spent working on the practical part of this thesis, I spent around a month experimenting with various approaches for applying the bilateral filter detailed in section \ref{bilateral_filter}, including implementing the naive algorithm (see section \ref{bilateral_filter}) and another optimisation by Paris and Durand \cite{paris2006fast}. The version of bilateral filter by Paris and Durand was unsuitable for two reasons: the example code was written in C++ and would only perform filtering on monochrome images. While it would have been perfectly possible to counter these problems by utilising Java Native Interface (JNI) and re-writing the example to work with multichannel images, in the light of already having a complete implementation in Java by Chaudhury et al., I opted for using that instead \cite{jni}.
+
+When dealing with the data-set of archaeological images, the difficult aspect was specifying the purpose of the processing. At the time I received the data, it was only partially structured, meaning that some portions of the data was nicely organised and tagged, whereas others were not. Therefore, measuring the efficiency of meta-data extraction was essentially impossible, as I did not have any ideally organised data-set to compare my results to, and neither did I have time to manually organise it. So, in the interests of providing at least some rough idea as to whether or not extracting information from the photos is within the processing capability of a regular Hadoop cluster of 8 or 16 computing nodes, I spent two weeks on implementing and testing the proof-of-concept pipeline detailed in section \ref{pipeline}.
 
 \chapter{Future work}
+
+As for future work, perhaps the most obvious starting point is looking into ways of processing large images with iterative local and non-local algorithms, because although adapting these algorithms into MapReduce using Hadoop seems to be difficult at first glance, depending on the algorithm, the issues could be solved by using implementations of MapReduce that are more suitable for iterative processing, such as Twister, HaLoop or Spark \cite{ekanayake2010twister,bu2010haloop,zaharia2010spark}. It is also probable that these kinds of algorithms would benefit more from models of distributed computing that are more geared towards allowing communication between computing nodes, such as Bulk Synchronous Parallel and Message Passing Interface \cite{valiant1990bridging,gropp1999using}.
 
 \listoffigures
 
@@ -726,11 +740,13 @@ Moving on to the case of processing images, whose dimensions are large enough to
 \subsection*{Karl Potisepp}
 
 Jälgides tänapäeva tehnoloogia arengut ning odavate fotokaamerate üha laialdasemat levikut, on üha selgem, et ühe osa üha kasvavast inimeste tekitatud andmete hulgast moodustavad pildid. Teades, et tõenäoliselt tuleb neid andmeid ka töödelda, ning et üksikute arvutite võimsus ei luba kohati juba praegu neid mahukamate ülesannete jaoks kasutada, on inimesed hakanud uurima mitmete hajusarvutuse mudelite pakutavaid võimalusi. Üks selline on MapReduce, mille põhiliseks aluseks on arvutuste üldisele kujule viimine, seades programmeerija ülesandeks defineerida vaid selle, mis toimub andmetega nelja arvutuse faasi - Input, Map, Reduce, Output - jooksul. Kuna sellest mudelist on olemas kvaliteetseid vabavara realisatsioone, ning mahukamateks arvutusteks on kerge vaeva ja vähese kuluga võimalik rentida vajalik infrastruktuur, siis on selline lähenemine pilditöötlusele muutunud peaaegu igaühele kättesaadavaks.
+
 Antud magistritöö eesmärgiks on uurida MapReduce mudeli kasutatavust suuremahulise pilditöötluse vallas. Selleks vaatlen eraldi juhte, kus tegemist on tavalistest piltidest koosneva suure andmestikuga, ning kus tuleb töödelda ühte suuremahulist pilti. Samuti jagan nelja klassi vahel kõik pilditöötlusalgoritmid, nimetades need vastavalt lokaalseteks, iteratiivseteks lokaalseteks, mittelokaalseteks ja iteratiivseteks mittelokaalseteks algoritmideks. Kasutades neid jaotusi, kirjeldan üldiselt põhilisi probleeme ja takistusi, mis võivad segada mingit tüüpi algoritmide hajusat rakendamist
 mingit tüüpi piltandmetel, ning pakun välja võimalikke lahendusi.
-Töö praktilises osas kirjeldan MapReduce mudeli kasutamist Apache Hadoop raamistikuga kahel erineval andmestikul, millest esimene on 265GiB-suurune pildikogu, ning teine 6.99 gigapiksli suurune mikroskoobifoto. Esimese näite puhul on ülesandeks pildikogust meta-andmete eraldamine, kasutades selleks objekti- ning tekstituvastust. Teise andmestiku puhul on ülesandeks töödelda pilti ühe kindla mitteiteratiivse lokaalse algoritmiga. Kuigi mõlemal juhul on tegemist vaid katsetamise eesmärgil loodud rakendustega, on mõlemal puhul näha, et olemasolevate pilditöötluse algoritmide MapReduce programmideks teisendamine on küllaltki lihtne, ning ei too endaga kaasa suuri kadusid jõudluses.
-Kokkuvõtteks väidan, et tavapärases mõõdus piltidest koosnevate andmestike puhul on MapReduce mudel lihtne viis arvutusi hajusale kujule viies kiirendada, kuid suuremahuliste piltide puhul kehtib see enamasti ainult mitteiteratiivsete lokaalsete algoritmidega.
 
+Töö praktilises osas kirjeldan MapReduce mudeli kasutamist Apache Hadoop raamistikuga kahel erineval andmestikul, millest esimene on 265GiB-suurune pildikogu, ning teine 6.99 gigapiksli suurune mikroskoobifoto. Esimese näite puhul on ülesandeks pildikogust meta-andmete eraldamine, kasutades selleks objekti- ning tekstituvastust. Teise andmestiku puhul on ülesandeks töödelda pilti ühe kindla mitteiteratiivse lokaalse algoritmiga. Kuigi mõlemal juhul on tegemist vaid katsetamise eesmärgil loodud rakendustega, on mõlemal puhul näha, et olemasolevate pilditöötluse algoritmide MapReduce programmideks teisendamine on küllaltki lihtne, ning ei too endaga kaasa suuri kadusid jõudluses.
+
+Kokkuvõtteks väidan, et tavapärases mõõdus piltidest koosnevate andmestike puhul on MapReduce mudel lihtne viis arvutusi hajusale kujule viies kiirendada, kuid suuremahuliste piltide puhul kehtib see enamasti ainult mitteiteratiivsete lokaalsete algoritmidega.
 
 \clearpage
 \addcontentsline{toc}{chapter}{Bibliography}

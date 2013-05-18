@@ -425,7 +425,7 @@ keywords = "Collective communication"
   publisher={IEEE}
 }
 
-@article{saxena20083,
+@article{saxena2008,
   title={3-d depth reconstruction from a single still image},
   author={Saxena, Ashutosh and Chung, Sung H and Ng, Andrew Y},
   journal={International Journal of Computer Vision},
@@ -479,6 +479,23 @@ keywords = "Collective communication"
   booktitle={Proceedings of the 2nd USENIX conference on Hot topics in cloud computing},
   pages={10--10},
   year={2010}
+}
+
+@incollection{paris2006fast,
+  title={A fast approximation of the bilateral filter using a signal processing approach},
+  author={Paris, Sylvain and Durand, Fr{\'e}do},
+  booktitle={Computer Vision--ECCV 2006},
+  pages={568--580},
+  year={2006},
+  publisher={Springer}
+}
+
+@ONLINE{jni,
+ author = {Oracle},
+ title = {Java Native Interface},
+ month = {May},
+ year = {2013},
+ url = {\url{http://docs.oracle.com/javase/6/docs/technotes/guides/jni/}}
 }
 
 
