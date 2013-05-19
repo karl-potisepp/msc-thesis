@@ -517,6 +517,28 @@ keywords = "Collective communication"
   publisher={MIT press}
 }
 
+@book{pharr2005gpu,
+  title={Gpu gems 2: programming techniques for high-performance graphics and general-purpose computation},
+  author={Pharr, Matt and Fernando, Randima},
+  year={2005},
+  publisher={Addison-Wesley Professional}
+}
+
+@ONLINE{hadoopstreaming,
+ author = {The Apache Software Foundation},
+ title = {Hadoop Streaming},
+ month = {May},
+ year = {2013},
+ url = {\url{http://hadoop.apache.org/docs/stable/streaming.html#Hadoop+Streaming}}
+}
+
+@ONLINE{hadooppipes,
+ author = {Yahoo! Inc.},
+ title = {Hadoop Pipes},
+ month = {May},
+ year = {2013},
+ url = {\url{http://developer.yahoo.com/hadoop/tutorial/module4.html#pipes}}
+}
 
 
 
