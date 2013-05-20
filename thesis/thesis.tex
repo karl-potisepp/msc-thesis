@@ -47,7 +47,7 @@
 \begin{document}
 
 \begin{tiitelleht}
-\pealkiri{Large-scale image processing using MapReduce}
+\pealkiri{Large-scale Image Processing Using MapReduce}
 \paber{M.Sc. Thesis (30 ECTS)}
 \autor{Karl Potisepp}
 
@@ -192,8 +192,8 @@ It is important to note here that the MapReduce model simply specifies a very ge
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.5]{mapreduce.eps} %TODO render with PDF
-%\includegraphics[scale=0.8]{mapreduce.pdf} %render with PDF
+%\includegraphics[scale=0.5]{mapreduce.eps} %TODO render with PDF
+\includegraphics[scale=0.8]{mapreduce.pdf} %render with PDF
 \caption[A simple example of the MapReduce computation model]{A simple example of the MapReduce computation model, inspired by the WordCount example provided in the Apache Hadoop Getting Started tutorial. A text file is first converted into pairs of line number and its content (Input), then the Map function splits these pairs further so that the reducer receives one pair per occurrence of a word. The objective of the Reduce function is then to count the individual occurrences and finally output the total per each distinct word.}
 \label{fig_mapreduce}
 \end{center}
