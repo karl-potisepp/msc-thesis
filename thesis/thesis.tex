@@ -322,29 +322,15 @@ Extracting Exif meta-data and making assumptions about the classification of ima
 \end{figure}
 \end{center}
 
- %It is somewhat structured and some images are also tagged with meta-data using folder structures. However, the structuring is incomplete, as evidenced by many duplicate images and missing meta-data (which currently has to be manually added). The motivation behind applying distributed image processing on this data set is to find out whether it is possible to speed up the structuring process and extract some meta-data with minimal human interference.
-
-%The downside of using this data set to illustrate the analysis of many small images using MapReduce is that since there is no ideally structured version of it to compare to, all efficiency statistics will be purely subjective. However the intent of this work is not to describe an effective meta-data extraction method, but rather analyse the suitability of MapReduce for this sort of task and discuss the issues (both solved and unsolved) encountered.
-
-%TODO explain structure more
-
 \subsubsection{Implementation in MapReduce}
 
 As I mentioned before, in this case, the Hadoop framework is used mostly to ensure the distribution of data, whereas the processing itself is handled by a shell script which is executed from within the MapReduce job. This solution carries the additional overhead of having to write individual images back to the local file system of the computing nodes, as reading data straight from HDFS is non-trivial to implement in a shell script. However, this method allowed me to quickly develop a working distributed image processing pipeline, as I could simply chain together different existing tools without having to adapt anything into Java.
 The first step in defining the MapReduce program for this task was figuring out the proper InputFormat to use. In this case, following the SequenceFile approach described earlier, I packaged the 48675 image files into 196 Key-Value collections, where the Key was set as the full path of the file with regard to the data-set, and Value as simply the contents of the file as a byte array.
+
 The function of the Mapper in this case can be summarised to this: it writes the image to local storage, extracts Exif meta-data, starts the external shell script which runs the image through the processing pipeline, reads any output from the script, and returns all meta-data as Values. The Reducer simply sorts the data for a given image and formats it, so that the final output is written to disk in text format, and could further be treated as a table of comma separated values (CSV). For meta-data extraction, I used the metadata-extractor Java library \cite{metadataextractor}. In the following paragraphs, I will explain more about the function of the shell script, which does most of the heavy lifting with regard to image processing in this scenario.
 
 \subsubsection{Image processing pipeline}
 \label{pipeline}
-
-\begin{center}
-\begin{figure}[h]
-\centering
-\includegraphics[scale=0.3]{box_recognition.eps} %TODO render with PDF
-\caption[Screenshot of \textit{find\_obj}]{Screenshot of the original \textit{find\_obj} from OpenCV examples used to recognise the tablet from the photo.}
-\label{box_recognition}
-\end{figure}
-\end{center}
 
 The main aim of the image processing pipeline is to provide a proof-of-concept solution to the tasks of recognising certain objects and extracting information by way of optical character recognition (OCR). As mentioned before, this is by no means a working solution that is ready to be applied in real world situations. However, a superficial analysis of the results suggests that, with some optimisation and tuning, it is suitable for extracting some information out of the data-set. The following is a rough description of each of the steps in the process:
 \begin{enumerate}
@@ -361,13 +347,22 @@ The main aim of the image processing pipeline is to provide a proof-of-concept s
 \begin{center}
 \begin{figure}[h]
 \centering
-\includegraphics[scale=0.3]{box.eps} %TODO render with PDF
-\caption{The query image used for object recognition.}
-\label{box}
+\includegraphics[scale=0.3]{box_recognition.eps} %TODO render with PDF
+\caption[Screenshot of \textit{find\_obj}]{Screenshot of the original \textit{find\_obj} from OpenCV examples used to recognise the tablet from the photo.}
+\label{box_recognition}
 \end{figure}
 \end{center}
 
-In practice, I used this script to try and find the tablet shown in figure \ref{box}. If the tablet was found, the script attempts to extract the region containing it, and if that succeeds as well, it tries to recognise the handwritten text. For the first step, I adapted the \textit{find\_obj} example by Liu Liu from the Open Computer Vision library (OpenCV) \cite{opencv}, in order to retrieve the coordinates of matches in the target image. The script uses the library's implementation of Speed-Up Robust Feature (SURF) descriptor to find points in the target image that are similar to points in the query image \cite{bay2006surf}. An example can be seen in figure \ref{box_recognition}. 
+In practice, I used this script to try and find the tablet shown in figure \ref{box}. If the tablet was found, the script attempts to extract the region containing it, and if that succeeds as well, it tries to recognise the handwritten text. For the first step, I adapted the \textit{find\_obj} example by Liu Liu from the Open Computer Vision library (OpenCV) \cite{opencv}, in order to retrieve the coordinates of matches in the target image. The script uses the library's implementation of Speed-Up Robust Feature (SURF) descriptor to find points in the target image that are similar to points in the query image \cite{bay2006surf}. An example can be seen in figure \ref{box_recognition}.
+
+\begin{center}
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.8]{box.eps} %TODO render with PDF
+\caption{The query image used for object recognition.}
+\label{box}
+\end{figure}
+\end{center} 
 
 Having found at least one matching point, we note that the image probably contains the object we are searching for. In this case, we move on to the next phase of processing: trying to extract the part of the image with the tablet.
 To achieve this, I used a sequence of operations implemented as command line tools in the Pandore library \cite{pandore}. Processing starts by first segmenting the image two regions by pixel value (thresholding - figure \ref{fig_thresholding_small}) and assigning a different label to each separate region (labeling - figure \ref{fig_labeling_small}). After this, the script applies morphological processing in the form of erosion - a process which "erodes" the edges of regions and causes some of them to disappear (see figure \ref{fig_erosion_small}) - and dilatation, which is the reverse of erosion, in order to restore the size of the remaining regions. 
@@ -420,7 +415,7 @@ If the script succeeded in extracting a region of the image, the Tesseract OCR t
 \\
 \begin{subfigure}{1.0\textwidth}
   \centering
-  \includegraphics[scale=0.3]{box_extracted.eps} %TODO render with PDF
+  \includegraphics[scale=0.27]{box_extracted.eps} %TODO render with PDF
   \caption{}
 	\label{fig_box_extracted_small}
 \end{subfigure}
@@ -430,7 +425,9 @@ If the script succeeded in extracting a region of the image, the Tesseract OCR t
 %\end{center}
 
 \subsection{Results}
-Since the data-set consists of images much smaller in size than the default HDFS block size of 64 megabytes, I first converted the data into a set of SequenceFiles (see section \ref{hdfs}), which took about half an hour on a Intel Core 2 CPU 4300 @ 1.80GHz x 2 PC with 4GiB of memory and a Samsung HD204UI hard drive running at 5400 rpm. While I did not explicitly measure how long it took to upload all files to HDFS, but I estimate that time spent was around 4-5 hours, and the time of transferring data from my computer to the master node of the Hadoop cluster in the Amazon EC2 cloud around 20 hours. However, it is important to note here that the transfer times depend on link speed. Processing the SequenceFiles with a 16-node Hadoop cluster running version 0.20.2 took \textbf{12,5 hours} ($\sim0.9$ seconds per image on average), with 8 worker nodes, this number increased to \textbf{24,2} ($\sim1.8$ seconds per image). Since this trend probably continues as the size of the cluster decreases, we can assume a total execution time of roughly 194 hours (at $\sim14$ seconds per image) - roughly 8 days - to process all 48675 photos in the data-set on a single m2.xlarge instance. 
+Since the data-set consists of images much smaller in size than the default HDFS block size of 64 megabytes, I first converted the data into a set of SequenceFiles (see section \ref{hdfs}), which took about half an hour on a Intel Core 2 CPU 4300 @ 1.80GHz x 2 PC with 4GiB of memory and a Samsung HD204UI hard drive running at 5400 rpm. While I did not explicitly measure how long it took to upload all files to HDFS, but I estimate that time spent was around 4-5 hours, and the time of transferring data from my computer to the master node of the Hadoop cluster in the Amazon EC2 cloud around 20 hours. However, it is important to note here that the transfer times depend on link speed. 
+
+Processing the SequenceFiles with a 16-node Hadoop cluster running version 0.20.2 took \textbf{12,5 hours} ($\sim0.9$ seconds per image on average), with 8 worker nodes, this number increased to \textbf{24,2} ($\sim1.8$ seconds per image). Since this trend probably continues as the size of the cluster decreases, we can assume a total execution time of roughly 194 hours (at $\sim14$ seconds per image) - roughly 8 days - to process all 48675 photos in the data-set on a single m2.xlarge instance. 
 
 \clearpage
 \section{Processing a large image using a local non-iterative algorithm}
@@ -455,8 +452,7 @@ As already briefly mentioned in the introduction of this work, the image in ques
   \caption{}
   %\label{fig:sub2}
 \end{subfigure}
-\caption[Bilateral filter example on microscope image]{On the left - a 512 by 512 pixel detail of the microscope image. On the right - results of fast O(1) bilateral filtering with $\sigma_s, \sigma_r$ = 10. The dark spots are the nuclei of the cells, which are now more defined on the processed image, allowing for easier object recognition.}
-\label{fig_microscope}
+\caption[Bilateral filter example on microscope image]{On the left - a 512 by 512 pixel detail of the microscope image. On the right - results of fast O(1) bilateral filtering with $\sigma_s, \sigma_r$ = 10. The dark spots are the nuclei of the cells, which are now more defined on the processed image, allowing for easier object recognition. \label{fig:microscope} }
 \end{figure}
 \end{center}
 
@@ -507,12 +503,11 @@ As image processing algorithms tend to operate on uncompressed images, using thi
   \caption{}
   %\label{fig:sub2}
 \end{subfigure}
-\caption[An example of Gaussian blur and bilateral filter]{An example of Gaussian blur with $\sigma$ = 10 (b) and Fast O(1) Bilateral Filter (c) with $\sigma_s=100, \sigma_r=10$ applied to the Lenna test image (a)\cite{lenna}.}
-\label{fig_gaussian_blur}
+\caption[An example of Gaussian blur and bilateral filter]{An example of Gaussian blur with $\sigma$ = 10 (b) and Fast O(1) Bilateral Filter (c) with $\sigma_s=100, \sigma_r=10$ applied to the Lenna test image (a)\cite{lenna}. \label{fig_gaussian_blur} }
 \end{figure}
 %\end{center}
 
-One of the simplest local algorithms in image processing is Gaussian blur (also known as Gaussian smoothing). It's most common application is noise reduction. An example can be seen in figure \ref{fig_gaussian_blur}. The bilateral filter algorithm described later on in this thesis is an improvement of Gaussian blur with regard to edge-preservation capability. The following is a formal description of the algorithm:
+One of the simplest local algorithms in image processing is Gaussian blur (also known as Gaussian smoothing). It's most common application is noise reduction. An example can be seen in figure \ref{fig_gaussian_blur}. The bilateral filter algorithm described later on in this thesis is an improvement of Gaussian blur with regard to edge-preservation capability. A formal description can be found in algorithm \ref{algorithm_gaussian_blur}.
 
 \begin{center}
 \begin{algorithm}[h]
@@ -528,6 +523,8 @@ One of the simplest local algorithms in image processing is Gaussian blur (also 
 			}
 		}
 	}
+\caption{Gaussian blur.}
+\label{algorithm_gaussian_blur}
 \end{algorithm}
 \end{center}
 
@@ -541,7 +538,7 @@ Essentially, what happens to each pixel during the course of this algorithm, is 
 \subsubsection{Naive bilateral filter algorithm}
 \label{bilateral_filter}
 
-The improvement introduced to the Gaussian filter by the bilateral filter is an additional weight term which takes into account the values of the $\sigma$-neighborhood of the pixel (see figures \ref{fig_gaussian_blur,fig_microscope} for an example). This requires the addition of another cycle over all the pixels in the image and leads us to the following formulation:
+The improvement introduced to the Gaussian filter by the bilateral filter is an additional weight term which takes into account the values of the $\sigma$-neighborhood of the pixel (see figures \ref{fig_gaussian_blur} and \ref{fig:microscope} for an example). This requires the addition of another cycle over all the pixels in the image and leads us to the formulation presented in algorithm \ref{algorithm_naive_bf}.
 
 \begin{center}
 \begin{algorithm}[H]
@@ -562,6 +559,8 @@ The improvement introduced to the Gaussian filter by the bilateral filter is an 
 			$O(x,y) = \frac{O(x,y)}{norm}$
 		}
 	}
+\caption{Naive bilateral filter.}
+\label{algorithm_naive_bf}
 \end{algorithm}
 \end{center}
 
@@ -588,11 +587,10 @@ Due to the size of the image in question, the first step in the processing chain
 \item Therefore, a choice of 4500 by 4500 pixels should be close to optimal, regardless of the content of the image.
 \end{itemize}
 
-Before partitioning the image based on this idea, it is also necessary to take into account the characteristics of the processing we are about to apply. Namely, we have to ensure that the results of this divide-and-conquer type approach are identical to the results we would attain by processing the image without partitioning. In this case, we are dealing with a local non-iterative algorithm, therefore this is relatively straightforward: we only have to make sure that adjacent parts of the image have an overlap big enough, so that when the algorithm calculates new values for pixels at the edge of the partial images, it still has the values of their neighboring pixels. For example, in the case of applying Gaussian blur with a radius of 5, the initial image should be partitioned so that individual pieces have an overlap of at least 5 pixels.
-
-In the spirit of this analysis, I split the 6.99 gigapixel photo into pieces using the following algorithm:
+Before partitioning the image based on this idea, it is also necessary to take into account the characteristics of the processing we are about to apply. Namely, we have to ensure that the results of this divide-and-conquer type approach are identical to the results we would attain by processing the image without partitioning. In this case, we are dealing with a local non-iterative algorithm, therefore this is relatively straightforward: we only have to make sure that adjacent parts of the image have an overlap big enough, so that when the algorithm calculates new values for pixels at the edge of the partial images, it still has the values of their neighboring pixels. For example, in the case of applying Gaussian blur with a radius of 5, the initial image should be partitioned so that individual pieces have an overlap of at least 5 pixels. In the spirit of this analysis, I split the 6.99 gigapixel photo into pieces using the algorithm presented in figure \ref{partitioning_algorithm}.
 
 \begin{center}
+%\begin{figure}[h]
 \begin{algorithm}[H]
 	\KwData{$w$ - input width, $h$ - input height, $o$ - overlap, $b$ - piece height/width, $f_x$ - width offset, $f_y$ - height offset}
 	\For{$f_x = 0, 1, ... w$}{
@@ -605,7 +603,7 @@ In the spirit of this analysis, I split the 6.99 gigapixel photo into pieces usi
 		\For{$f_y = 0, 1, ... h$}{
 
 			\If{$f_y + b > h$}{
-				$tmp_{height} = w - f_x$
+				$tmp_{height} = w - f_y$
 			}
 			\Else{$tmp_{height} = b$}
 			
@@ -615,7 +613,10 @@ In the spirit of this analysis, I split the 6.99 gigapixel photo into pieces usi
 		}
 		$f_x += b$
 	}
+\caption{Pseudocode of the partitioning script used to split the image into smaller pieces.}
+\label{partitioning_algorithm}
 \end{algorithm}
+%\end{figure}
 \end{center}
 
 As a result, the original image was converted into 380 parts of varying size both in terms of dimensions and storage: the biggest piece with dimensions 4500 by 4500 and 30.4 megabytes in size, and the smallest piece being roughly 913 kilobytes with a width of 1381 and height of 601 pixels. This concludes the part of pre-processing the data in preparation of uploading it to the Hadoop Distributed File System.
@@ -623,7 +624,7 @@ To extract the pieces from the GeoTIFF container into individual PNG files, I us
 
 \subsubsection{Implementation with Hadoop}
 
-Having partitioned the image into pieces that fit into memory, the next step is to design a MapReduce program to operate on this data. Since, by specifying overlaps and fitting the pieces within the HDFS block size during the partitioning phase, we have already ensured that each instance of the algorithm has it's necessary data locally available. Also, since we can easily perform all necessary computations in the Map phase, there is no need for a Reducer - Hadoop can be configured to simply write output to storage after the Map phase. Therefore, in this case, the MapReduce program consists only of three definitions: InputFormat, Mapper and OutputFormat. Their respective purposes are straightforward: read blocks from storage and convert them to Java objects that contain a piece of the image, process these pieces with the fast O(1) bilateral filter, and finally convert the resulting objects back to PNG files and write to HDFS. 
+Having partitioned the image into pieces that fit into memory, the next step is to design a MapReduce program to operate on this data. Since, by specifying overlaps and fitting the pieces within the HDFS block size during the partitioning phase, we have already ensured that each instance of the algorithm has it's necessary data locally available. Also, since we can easily perform all necessary computations in the Map phase, there is no need for a Reducer - Hadoop can be configured to simply write output to storage after the Map phase. Therefore, in this case, the MapReduce program consists only of three definitions: InputFormat, Mapper and OutputFormat. Their respective purposes are straightforward: read blocks from HDFS and convert them to Java objects that contain the name, dimensions and pixel values of the block's contents (one block contains one piece of the complete image), process these pieces with the fast O(1) bilateral filter, and finally convert the resulting objects back to PNG files and write to HDFS. Similarly to the other practical example presented in the previous section, the Key is the filename of the image (the filenames signifying which piece of the full image they represent), and the Value is a Java object containing the image.
 
 \subsubsection{Testing}
 
@@ -693,7 +694,7 @@ In this chapter, I have described two example scenarios of applying MapReduce-ba
 \begin{subfigure}{.5\textwidth}
 %\begin{center}
   \centering
-  \includegraphics[scale=1.0]{bf_speedup.eps} %TODO render with PDF
+  \includegraphics[scale=1.0]{bf_speedup.pdf} %TODO render with PDF
   %\caption{Regular image}
   %\label{fig:sub1}
 %\end{center}
@@ -741,6 +742,8 @@ As for future work, perhaps the most obvious starting point is looking into ways
 Another unexplored aspect of this thesis has to do with the choice of Amazon EC2 instance types used for testing. Namely, a common technique in speeding up image processing algorithms involves the use of Graphical Processing Units (GPU), also present in most commonly available personal computing devices \cite{pharr2005gpu}. In the practical parts of this thesis, however, I ran no tests at all on the GPU-equipped instances Amazon provides, instead focusing on image processing that only makes use of the "regular" processor, or Central Processing Unit (CPU). While it is unlikely that using GPU programming techniques in distributed image processing significantly affects the main conclusions of this thesis, as it does not solve the computing nodes' need to communicate, looking into this subject may allow for processing of significantly more amounts of data, potentially turning some large-scale tasks into small-scale.
 
 \listoffigures
+\listofalgorithms
+
 
 \chapter*{Resümee (Eesti keeles)}
 \addcontentsline{toc}{chapter}{Resümee (Eesti keeles)}

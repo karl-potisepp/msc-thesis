@@ -9,6 +9,26 @@ Volker Aurich and J{\"o}rg Weule.
 \newblock Non-linear gaussian filters performing edge preserving diffusion.
 \newblock In {\em Mustererkennung 1995}, pages 538--545. Springer, 1995.
 
+\bibitem{bay2006surf}
+Herbert Bay, Tinne Tuytelaars, and Luc Van~Gool.
+\newblock Surf: Speeded up robust features.
+\newblock In {\em Computer Vision--ECCV 2006}, pages 404--417. Springer, 2006.
+
+\bibitem{borthakur2007hadoop}
+Dhruba Borthakur.
+\newblock The hadoop distributed file system: Architecture and design.
+\newblock {\em Hadoop Project Website}, 11:21, 2007.
+
+\bibitem{bu2010haloop}
+Yingyi Bu, Bill Howe, Magdalena Balazinska, and Michael~D Ernst.
+\newblock Haloop: Efficient iterative data processing on large clusters.
+\newblock {\em Proceedings of the VLDB Endowment}, 3(1-2):285--296, 2010.
+
+\bibitem{chaudhury2011fast}
+Kunal~Narayan Chaudhury, Daniel Sage, and Michael Unser.
+\newblock Fast o(1) bilateral filtering using trigonometric range kernels.
+\newblock {\em arXiv preprint arXiv:1105.4204}, 2011.
+
 \bibitem{Dean:2008:MSD:1327452.1327492}
 Jeffrey Dean and Sanjay Ghemawat.
 \newblock Mapreduce: simplified data processing on large clusters.
@@ -19,9 +39,43 @@ Borthakur Dhruba.
 \newblock Looking at the code behind our three uses of apache hadoop, December
   2010.
 
-\bibitem{website:amazon_ec2}
-Borthakur Dhruba.
-\newblock Amazon elastic compute cloud (amazon ec2), October 2012.
+\bibitem{ekanayake2010twister}
+Jaliya Ekanayake, Hui Li, Bingjing Zhang, Thilina Gunarathne, Seung-Hee Bae,
+  Judy Qiu, and Geoffrey Fox.
+\newblock Twister: a runtime for iterative mapreduce.
+\newblock In {\em Proceedings of the 19th ACM International Symposium on High
+  Performance Distributed Computing}, pages 810--818. ACM, 2010.
+
+\bibitem{japan2002jeita}
+Japan Electronics, Information Technology~Industries Association, et~al.
+\newblock Jeita cp-3451 exchangeable image file format for digital still
+  cameras: Exif version 2.2.
+\newblock {\em Japan Electronics and Information Technology Industries
+  Association}, 2002.
+
+\bibitem{hadoopfaq}
+The Apache~Software Foundation.
+\newblock Faq - hadoop wiki, May 2013.
+
+\bibitem{hadoopstreaming}
+The Apache~Software Foundation.
+\newblock Hadoop streaming, May 2013.
+
+\bibitem{gdal}
+GDAL.
+\newblock Gdal - geospatial data abstraction library, May 2013.
+
+\bibitem{ghemawat2003google}
+Sanjay Ghemawat, Howard Gobioff, and Shun-Tak Leung.
+\newblock The google file system.
+\newblock In {\em ACM SIGOPS Operating Systems Review}, volume~37, pages
+  29--43. ACM, 2003.
+
+\bibitem{gropp1999using}
+William Gropp, Ewing~L Lusk, and Anthony Skjellum.
+\newblock {\em Using MPI-: Portable Parallel Programming with the Message
+  Passing Interface}, volume~1.
+\newblock MIT press, 1999.
 
 \bibitem{trease08}
 R.~Farber S.~Elbert H.~Trease, D.~Fraser.
@@ -34,6 +88,24 @@ Kenneth~A. Hawick, P.~D. Coddington, and H.~A. James.
   large-scale geographic data.
 \newblock {\em Parallel Comput.}, 29(10):1297--1333, October 2003.
 
+\bibitem{herodotou2011starfish}
+Herodotos Herodotou, Harold Lim, Gang Luo, Nedyalko Borisov, Liang Dong,
+  Fatma~Bilgen Cetin, and Shivnath Babu.
+\newblock Starfish: A self-tuning system for big data analytics.
+\newblock In {\em Proc. of the Fifth CIDR Conf}, 2011.
+
+\bibitem{website:amazon_ec2}
+Amazon.com Inc.
+\newblock Amazon elastic compute cloud (amazon ec2), October 2012.
+
+\bibitem{ec2_instancetypes}
+Amazon.com Inc.
+\newblock Amazon ec2 instance types, May 2013.
+
+\bibitem{hadooppipes}
+Yahoo! Inc.
+\newblock Hadoop pipes, May 2013.
+
 \bibitem{Lv:2010:PKC:1927661.1927687}
 Zhenhua Lv, Yingjie Hu, Haidong Zhong, Jianping Wu, Bo~Li, and Hui Zhao.
 \newblock Parallel k-means clustering of remote sensing images based on
@@ -41,6 +113,39 @@ Zhenhua Lv, Yingjie Hu, Haidong Zhong, Jianping Wu, Bo~Li, and Hui Zhao.
 \newblock In {\em Proceedings of the 2010 international conference on Web
   information systems and mining}, WISM'10, pages 162--170, Berlin, Heidelberg,
   2010. Springer-Verlag.
+
+\bibitem{mahammad2003geotiff}
+Sk~Sazid Mahammad and R~Ramakrishnan.
+\newblock Geotiff-a standard image file format for gis applications.
+\newblock {\em Space Application Centre, ISRO, Ahemedabad}, 2003.
+
+\bibitem{metadataextractor}
+Drew Noakes.
+\newblock Metadata extractor, May 2013.
+
+\bibitem{portusproject}
+University of~Southampton.
+\newblock Portus project, May 2013.
+
+\bibitem{opencv}
+OpenCV.
+\newblock Opencv - open source computer vision, May 2013.
+
+\bibitem{jni}
+Oracle.
+\newblock Java native interface, May 2013.
+
+\bibitem{pandore}
+{Pandore: A library of image processing operators (Version 6.4). [Software].
+  Greyc Laboratory}.
+\newblock {https://clouard.users.greyc.fr/Pandore}, 2013.
+\newblock {[accessed April 2013]}.
+
+\bibitem{paris2006fast}
+Sylvain Paris and Fr{\'e}do Durand.
+\newblock A fast approximation of the bilateral filter using a signal
+  processing approach.
+\newblock In {\em Computer Vision--ECCV 2006}, pages 568--580. Springer, 2006.
 
 \bibitem{bf_course}
 Sylvain Paris, Pierre Kornprobst, Jack Tumblin, and Fredo Durand.
@@ -55,6 +160,12 @@ Rafael Pereira, Marcello Azambuja, Karin Breitman, and Markus Endler.
   Cloud Computing}, CLOUD '10, pages 482--489, Washington, DC, USA, 2010. IEEE
   Computer Society.
 
+\bibitem{pharr2005gpu}
+Matt Pharr and Randima Fernando.
+\newblock {\em Gpu gems 2: programming techniques for high-performance graphics
+  and general-purpose computation}.
+\newblock Addison-Wesley Professional, 2005.
+
 \bibitem{5446706}
 M.W. Powell, R.A. Rossi, and K.~Shams.
 \newblock A scalable image processing framework for gigapixel mars and other
@@ -64,6 +175,15 @@ M.W. Powell, R.A. Rossi, and K.~Shams.
 \bibitem{imagej}
 Wayne Rasband.
 \newblock Imagej - image processing and analysis in java, April 2013.
+
+\bibitem{saxena2008}
+Ashutosh Saxena, Sung~H Chung, and Andrew~Y Ng.
+\newblock 3-d depth reconstruction from a single still image.
+\newblock {\em International Journal of Computer Vision}, 76(1):53--69, 2008.
+
+\bibitem{tesseract}
+Ray Smith.
+\newblock Tesseract ocr library, May 2013.
 
 \bibitem{smith1997susan}
 Stephen~M Smith and J~Michael Brady.
@@ -75,11 +195,22 @@ Satish~Narayana Srirama, Pelle Jakovits, and Eero Vainikko.
 \newblock Adapting scientific computing problems to clouds using mapreduce.
 \newblock {\em Future Generation Computer Systems}, 28(1):184--192, 2012.
 
+\bibitem{sudo2009associative}
+Akihito Sudo, Akihiro Sato, and Osamu Hasegawa.
+\newblock Associative memory for online learning in noisy environments using
+  self-organizing incremental neural network.
+\newblock {\em Neural Networks, IEEE Transactions on}, 20(6):964--972, 2009.
+
 \bibitem{tomasi1998bilateral}
 Carlo Tomasi and Roberto Manduchi.
 \newblock Bilateral filtering for gray and color images.
 \newblock In {\em Computer Vision, 1998. Sixth International Conference on},
   pages 839--846. IEEE, 1998.
+
+\bibitem{valiant1990bridging}
+Leslie~G Valiant.
+\newblock A bridging model for parallel computation.
+\newblock {\em Communications of the ACM}, 33(8):103--111, 1990.
 
 \bibitem{wang2011ult}
 Y.~Wang, D.~McCleary, C.~Wang, P.~Kelly, J.~James, D.A. Fennell, and P.W.
@@ -94,9 +225,29 @@ Brandyn White, Tom Yeh, Jimmy Lin, and Larry Davis.
 \newblock In {\em Proceedings of the Tenth International Workshop on Multimedia
   Data Mining}, MDMKDD '10, pages 9:1--9:10, New York, NY, USA, 2010. ACM.
 
+\bibitem{white2012hadoop}
+Tom White.
+\newblock {\em Hadoop: The definitive guide}.
+\newblock O'Reilly Media, Inc., 2012.
+
+\bibitem{lenna}
+Wikipedia.
+\newblock Lenna, May 2013.
+
+\bibitem{ext3}
+Matthew Wilcox.
+\newblock The second extended filesystem, May 2013.
+
 \bibitem{youtube_stats}
 YouTube.
 \newblock Statistics - youtube, April 2013.
+
+\bibitem{zaharia2010spark}
+Matei Zaharia, Mosharaf Chowdhury, Michael~J Franklin, Scott Shenker, and Ion
+  Stoica.
+\newblock Spark: cluster computing with working sets.
+\newblock In {\em Proceedings of the 2nd USENIX conference on Hot topics in
+  cloud computing}, pages 10--10, 2010.
 
 \bibitem{Zhang:2009:CSS:2127968.2128002}
 Chen Zhang, Hans De~Sterck, Ashraf Aboulnaga, Haig Djambazian, and Rob Sladek.

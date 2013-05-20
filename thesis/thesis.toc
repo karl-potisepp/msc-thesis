@@ -1,37 +1,35 @@
 \select@language {english}
-\contentsline {chapter}{\numberline {1}Introduction}{3}{chapter.1}
-\contentsline {section}{\numberline {1.1}Problem statement}{5}{section.1.1}
-\contentsline {subsection}{\numberline {1.1.1}Distributed image processing}{6}{subsection.1.1.1}
-\contentsline {subsection}{\numberline {1.1.2}Why use MapReduce?}{10}{subsection.1.1.2}
-\contentsline {chapter}{\numberline {2}Background}{11}{chapter.2}
-\contentsline {section}{\numberline {2.1}Relevant work}{11}{section.2.1}
-\contentsline {section}{\numberline {2.2}MapReduce}{14}{section.2.2}
-\contentsline {subsection}{\numberline {2.2.1}Apache Hadoop}{16}{subsection.2.2.1}
-\contentsline {subsubsection}{Hadoop Distributed Filesystem (HDFS)}{16}{section*.2}
-\contentsline {subsubsection}{Running a MapReduce job}{17}{section*.3}
-\contentsline {section}{\numberline {2.3}Image processing}{17}{section.2.3}
-\contentsline {subsection}{\numberline {2.3.1}Bilateral filter}{18}{subsection.2.3.1}
-\contentsline {subsubsection}{Gaussian blur}{18}{section*.4}
-\contentsline {subsection}{\numberline {2.3.2}}{18}{subsection.2.3.2}
-\contentsline {subsection}{\numberline {2.3.3}Technologies used}{18}{subsection.2.3.3}
-\contentsline {subsubsection}{ImageJ}{18}{section*.5}
-\contentsline {subsubsection}{OpenCV}{18}{section*.6}
-\contentsline {subsubsection}{Tesseract}{18}{section*.7}
-\contentsline {subsubsection}{Pandore}{18}{section*.8}
-\contentsline {subsubsection}{ImageMagick}{18}{section*.9}
-\contentsline {subsubsection}{Metadata-extractor}{18}{section*.10}
-\contentsline {section}{\numberline {2.4}Image processing and MapReduce}{18}{section.2.4}
-\contentsline {chapter}{\numberline {3}Use case}{20}{chapter.3}
-\contentsline {section}{\numberline {3.1}Processing a large image using a local non-iterative algorithm}{20}{section.3.1}
-\contentsline {subsection}{\numberline {3.1.1}Description of the data and use case}{20}{subsection.3.1.1}
-\contentsline {subsection}{\numberline {3.1.2}Bilateral Filter}{21}{subsection.3.1.2}
-\contentsline {subsubsection}{Naive bilateral filter algorithm}{22}{section*.11}
-\contentsline {subsubsection}{Fast O(1) bilateral filter algorithm}{23}{section*.12}
-\contentsline {subsubsection}{}{23}{section*.13}
-\contentsline {subsection}{\numberline {3.1.3}Performance}{23}{subsection.3.1.3}
-\contentsline {section}{\numberline {3.2}Analysis of many small images}{24}{section.3.2}
-\contentsline {subsection}{\numberline {3.2.1}Description of the data and possible use case}{24}{subsection.3.2.1}
-\contentsline {subsection}{\numberline {3.2.2}Problem statement}{24}{subsection.3.2.2}
-\contentsline {subsection}{\numberline {3.2.3}Performance}{25}{subsection.3.2.3}
-\contentsline {chapter}{\numberline {4}Overview and discussion}{26}{chapter.4}
-\contentsline {chapter}{Bibliography}{27}{chapter.4}
+\contentsline {chapter}{\numberline {1}Introduction}{2}{chapter.1}
+\contentsline {section}{\numberline {1.1}Problem statement}{3}{section.1.1}
+\contentsline {subsection}{\numberline {1.1.1}Distributed image processing}{5}{subsection.1.1.1}
+\contentsline {subsection}{\numberline {1.1.2}Why use MapReduce?}{8}{subsection.1.1.2}
+\contentsline {section}{\numberline {1.2}Summary}{9}{section.1.2}
+\contentsline {chapter}{\numberline {2}Background}{10}{chapter.2}
+\contentsline {section}{\numberline {2.1}Relevant work}{10}{section.2.1}
+\contentsline {section}{\numberline {2.2}MapReduce}{13}{section.2.2}
+\contentsline {subsection}{\numberline {2.2.1}Apache Hadoop}{15}{subsection.2.2.1}
+\contentsline {subsubsection}{Hadoop Distributed File System}{17}{section*.5}
+\contentsline {section}{\numberline {2.3}Summary}{18}{section.2.3}
+\contentsline {chapter}{\numberline {3}Image processing with MapReduce in practice}{19}{chapter.3}
+\contentsline {section}{\numberline {3.1}Processing a large data set of regular images}{19}{section.3.1}
+\contentsline {subsubsection}{Classification by Exif meta-data and folder structure}{21}{section*.6}
+\contentsline {subsubsection}{Information extraction by object and text recognition}{22}{section*.8}
+\contentsline {subsubsection}{Implementation in MapReduce}{23}{section*.11}
+\contentsline {subsubsection}{Image processing pipeline}{24}{section*.12}
+\contentsline {subsection}{\numberline {3.1.1}Results}{26}{subsection.3.1.1}
+\contentsline {section}{\numberline {3.2}Processing a large image using a local non-iterative algorithm}{29}{section.3.2}
+\contentsline {subsection}{\numberline {3.2.1}Description of the data and use case}{29}{subsection.3.2.1}
+\contentsline {subsection}{\numberline {3.2.2}Bilateral Filter}{29}{subsection.3.2.2}
+\contentsline {subsubsection}{Gaussian blur}{31}{section*.17}
+\contentsline {subsubsection}{Naive bilateral filter algorithm}{33}{section*.20}
+\contentsline {subsubsection}{Fast O(1) bilateral filter algorithm}{33}{section*.21}
+\contentsline {subsection}{\numberline {3.2.3}Practical approach}{34}{subsection.3.2.3}
+\contentsline {subsubsection}{Implementation with Hadoop}{36}{section*.23}
+\contentsline {subsubsection}{Testing}{37}{section*.24}
+\contentsline {section}{\numberline {3.3}Discussion}{38}{section.3.3}
+\contentsline {section}{\numberline {3.4}Summary}{40}{section.3.4}
+\contentsline {chapter}{\numberline {4}Conclusions}{42}{chapter.4}
+\contentsline {chapter}{\numberline {5}Future work}{44}{chapter.5}
+\contentsline {chapter}{Res\IeC {\"u}mee (Eesti keeles)}{47}{chapter*.30}
+\contentsline {chapter}{Bibliography}{49}{section*.33}
+\contentsline {chapter}{Licence}{54}{chapter*.35}

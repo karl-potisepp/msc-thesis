@@ -20,26 +20,28 @@
 \@writefile{lot}{\select@language{english}}
 \@writefile{loa}{\addvspace {10\p@ }}
 \@writefile{loa}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {chapter}{\numberline {1}Introduction}{3}{chapter.1}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {1}Introduction}{2}{chapter.1}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \citation{youtube_stats}
-\@writefile{toc}{\contentsline {section}{\numberline {1.1}Problem statement}{5}{section.1.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.1}Distributed image processing}{6}{subsection.1.1.1}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.1}Problem statement}{3}{section.1.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.1}Distributed image processing}{5}{subsection.1.1.1}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.1}{\ignorespaces Differences between local and non-local processing}}{6}{figure.caption.2}}
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig_local_nonlocal}{{1.1}{6}{Differences between local and non-local processing\relax }{figure.caption.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.2}{\ignorespaces Data requirements of iterative local processing}}{7}{figure.caption.3}}
+\newlabel{fig_local_iterative}{{1.2}{7}{Data requirements of iterative local processing\relax }{figure.caption.3}{}}
 \citation{srirama2012adapting}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.1}{\ignorespaces Differences between local (left) and non-local (right) processing. Red represents the pixel in focus, the X-s represent the pixels whose data the algorithm needs to access.}}{8}{figure.1.1}}
-\newlabel{fig_local_nonlocal}{{1.1}{8}{Differences between local (left) and non-local (right) processing. Red represents the pixel in focus, the X-s represent the pixels whose data the algorithm needs to access}{figure.1.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.2}{\ignorespaces Illustration of the data requirements of iterative local processing. The top row represents first local computations of the first iteration. The diagram on the bottom shows the requirements at the start of the second iteration. Arrows encode a 'depends on' relationship: the value from which the arrow originates depends on the value the arrow is pointing at.}}{9}{figure.1.2}}
-\newlabel{fig_local_iterative}{{1.2}{9}{Illustration of the data requirements of iterative local processing. The top row represents first local computations of the first iteration. The diagram on the bottom shows the requirements at the start of the second iteration. Arrows encode a 'depends on' relationship: the value from which the arrow originates depends on the value the arrow is pointing at}{figure.1.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.2}Why use MapReduce?}{10}{subsection.1.1.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.2}Why use MapReduce?}{8}{subsection.1.1.2}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.2}Summary}{9}{section.1.2}}
 \@writefile{loa}{\addvspace {10\p@ }}
 \citation{White:2010:WCV:1814245.1814254}
 \citation{Pereira:2010:ADH:1844768.1845374}
 \citation{website:facebook_namenode_improvements}
-\@writefile{toc}{\contentsline {chapter}{\numberline {2}Background}{11}{chapter.2}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {2}Background}{10}{chapter.2}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {2.1}Relevant work}{11}{section.2.1}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}Relevant work}{10}{section.2.1}}
 \citation{citeulike:2631015}
 \citation{Lv:2010:PKC:1927661.1927687}
 \citation{Zhang:2009:CSS:2127968.2128002}
@@ -49,73 +51,174 @@
 \citation{5446706}
 \citation{wang2011ult}
 \citation{Dean:2008:MSD:1327452.1327492}
-\@writefile{toc}{\contentsline {section}{\numberline {2.2}MapReduce}{14}{section.2.2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces A simple example of the MapReduce computation model, inspired by the WordCount example provided in the Apache Hadoop Getting Started tutorial. A text file is first converted into pairs of line number and its content (Input), then the Map function splits these pairs further so that the reducer receives one pair per occurrence of a word. The objective of the Reduce function is then to count the individual occurrences and finally output the total per each distinct word.}}{15}{figure.2.1}}
-\newlabel{fig_mapreduce}{{2.1}{15}{A simple example of the MapReduce computation model, inspired by the WordCount example provided in the Apache Hadoop Getting Started tutorial. A text file is first converted into pairs of line number and its content (Input), then the Map function splits these pairs further so that the reducer receives one pair per occurrence of a word. The objective of the Reduce function is then to count the individual occurrences and finally output the total per each distinct word}{figure.2.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}MapReduce}{13}{section.2.2}}
+\newlabel{mapreduce}{{2.2}{13}{MapReduce\relax }{section.2.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces A simple example of the MapReduce computation model}}{14}{figure.caption.4}}
+\newlabel{fig_mapreduce}{{2.1}{14}{A simple example of the MapReduce computation model\relax }{figure.caption.4}{}}
 \citation{white2012hadoop}
-\citation{ghemawat2003google}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Apache Hadoop}{16}{subsection.2.2.1}}
-\@writefile{toc}{\contentsline {subsubsection}{Hadoop Distributed Filesystem (HDFS)}{16}{section*.2}}
-\citation{imagej}
-\@writefile{toc}{\contentsline {subsubsection}{Running a MapReduce job}{17}{section*.3}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.3}Image processing}{17}{section.2.3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}Bilateral filter}{18}{subsection.2.3.1}}
-\@writefile{toc}{\contentsline {subsubsection}{Gaussian blur}{18}{section*.4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.2}}{18}{subsection.2.3.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.3}Technologies used}{18}{subsection.2.3.3}}
-\@writefile{toc}{\contentsline {subsubsection}{ImageJ}{18}{section*.5}}
-\@writefile{toc}{\contentsline {subsubsection}{OpenCV}{18}{section*.6}}
-\@writefile{toc}{\contentsline {subsubsection}{Tesseract}{18}{section*.7}}
-\@writefile{toc}{\contentsline {subsubsection}{Pandore}{18}{section*.8}}
-\@writefile{toc}{\contentsline {subsubsection}{ImageMagick}{18}{section*.9}}
-\@writefile{toc}{\contentsline {subsubsection}{Metadata-extractor}{18}{section*.10}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.4}Image processing and MapReduce}{18}{section.2.4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Apache Hadoop}{15}{subsection.2.2.1}}
+\citation{hadoopstreaming,hadooppipes}
+\citation{ghemawat2003google,borthakur2007hadoop}
+\citation{ext3}
+\@writefile{toc}{\contentsline {subsubsection}{Hadoop Distributed File System}{17}{section*.5}}
+\newlabel{hdfs}{{2.2.1}{17}{Hadoop Distributed File System\relax }{section*.5}{}}
+\citation{herodotou2011starfish}
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Summary}{18}{section.2.3}}
 \@writefile{loa}{\addvspace {10\p@ }}
-\citation{chaudhury2011fast}
+\citation{portusproject}
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}Image processing with MapReduce in practice}{19}{chapter.3}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}Processing a large data set of regular images}{19}{section.3.1}}
+\citation{sudo2009associative,saxena2008}
+\citation{japan2002jeita}
+\@writefile{toc}{\contentsline {subsubsection}{Classification by Exif meta-data and folder structure}{21}{section*.6}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces A photo of random scenery}}{21}{figure.caption.7}}
+\newlabel{archaeology_ex3}{{3.1}{21}{A photo of random scenery\relax }{figure.caption.7}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Information extraction by object and text recognition}{22}{section*.8}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.2}{\ignorespaces A photo of an archaeological find}}{22}{figure.caption.9}}
+\newlabel{archaeology_ex1}{{3.2}{22}{A photo of an archaeological find\relax }{figure.caption.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.3}{\ignorespaces A photo of an excavation site}}{23}{figure.caption.10}}
+\newlabel{archaeology_ex2}{{3.3}{23}{A photo of an excavation site\relax }{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Implementation in MapReduce}{23}{section*.11}}
+\citation{metadataextractor}
+\@writefile{toc}{\contentsline {subsubsection}{Image processing pipeline}{24}{section*.12}}
+\newlabel{pipeline}{{3.1}{24}{Image processing pipeline\relax }{section*.12}{}}
+\citation{opencv}
+\citation{bay2006surf}
+\citation{pandore}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.4}{\ignorespaces Screenshot of \textit  {find\_obj}}}{25}{figure.caption.13}}
+\newlabel{box_recognition}{{3.4}{25}{Screenshot of \textit {find\_obj}\relax }{figure.caption.13}{}}
+\citation{tesseract}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.5}{\ignorespaces The query image used for object recognition.\relax }}{26}{figure.caption.14}}
+\newlabel{box}{{3.5}{26}{The query image used for object recognition.\relax \relax }{figure.caption.14}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.1}Results}{26}{subsection.3.1.1}}
+\newlabel{fig_input_small}{{3.6a}{28}{\relax \relax }{figure.caption.15}{}}
+\newlabel{sub@fig_input_small}{{a}{28}{\relax \relax }{figure.caption.15}{}}
+\newlabel{fig_thresholding_small}{{3.6b}{28}{\relax \relax }{figure.caption.15}{}}
+\newlabel{sub@fig_thresholding_small}{{b}{28}{\relax \relax }{figure.caption.15}{}}
+\newlabel{fig_labeling_small}{{3.6c}{28}{\relax \relax }{figure.caption.15}{}}
+\newlabel{sub@fig_labeling_small}{{c}{28}{\relax \relax }{figure.caption.15}{}}
+\newlabel{fig_erosion_small}{{3.6d}{28}{\relax \relax }{figure.caption.15}{}}
+\newlabel{sub@fig_erosion_small}{{d}{28}{\relax \relax }{figure.caption.15}{}}
+\newlabel{fig_dilatation_small}{{3.6e}{28}{\relax \relax }{figure.caption.15}{}}
+\newlabel{sub@fig_dilatation_small}{{e}{28}{\relax \relax }{figure.caption.15}{}}
+\newlabel{fig_bounding_box_small}{{3.6f}{28}{\relax \relax }{figure.caption.15}{}}
+\newlabel{sub@fig_bounding_box_small}{{f}{28}{\relax \relax }{figure.caption.15}{}}
+\newlabel{fig_box_extracted_small}{{3.6g}{28}{\relax \relax }{figure.caption.15}{}}
+\newlabel{sub@fig_box_extracted_small}{{g}{28}{\relax \relax }{figure.caption.15}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.6}{\ignorespaces Step-by-step example of region extraction}}{28}{figure.caption.15}}
+\newlabel{fig_pipeline_examples}{{3.6}{28}{Step-by-step example of region extraction\relax }{figure.caption.15}{}}
+\citation{mahammad2003geotiff}
 \citation{aurich1995non,smith1997susan,tomasi1998bilateral}
 \citation{bf_course}
-\@writefile{toc}{\contentsline {chapter}{\numberline {3}Use case}{20}{chapter.3}}
-\@writefile{lof}{\addvspace {10\p@ }}
-\@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {3.1}Processing a large image using a local non-iterative algorithm}{20}{section.3.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.1}Description of the data and use case}{20}{subsection.3.1.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.2}Bilateral Filter}{21}{subsection.3.1.2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces TODO pretty picture of gaussian blur}}{22}{figure.3.1}}
-\newlabel{fig_gaussian_blur}{{3.1}{22}{TODO pretty picture of gaussian blur\relax }{figure.3.1}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Naive bilateral filter algorithm}{22}{section*.11}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.2}{\ignorespaces TODO pretty picture of bilateral filter}}{23}{figure.3.2}}
-\newlabel{fig_gaussian_blur}{{3.2}{23}{TODO pretty picture of bilateral filter\relax }{figure.3.2}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Fast O(1) bilateral filter algorithm}{23}{section*.12}}
-\@writefile{toc}{\contentsline {subsubsection}{}{23}{section*.13}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.3}Performance}{23}{subsection.3.1.3}}
-\@writefile{toc}{\contentsline {section}{\numberline {3.2}Analysis of many small images}{24}{section.3.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}Description of the data and possible use case}{24}{subsection.3.2.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}Problem statement}{24}{subsection.3.2.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}Performance}{25}{subsection.3.2.3}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}Processing a large image using a local non-iterative algorithm}{29}{section.3.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}Description of the data and use case}{29}{subsection.3.2.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}Bilateral Filter}{29}{subsection.3.2.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.7}{\ignorespaces Bilateral filter example on microscope image}}{30}{figure.caption.16}}
+\newlabel{fig:microscope}{{3.7}{30}{Bilateral filter example on microscope image\relax }{figure.caption.16}{}}
+\citation{lenna}
+\citation{lenna}
+\@writefile{toc}{\contentsline {subsubsection}{Gaussian blur}{31}{section*.17}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {1}{\ignorespaces Gaussian blur.\relax }}{31}{algocf.1}}
+\newlabel{algorithm_gaussian_blur}{{1}{31}{Gaussian blur\relax }{algocf.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.8}{\ignorespaces An example of Gaussian blur and bilateral filter}}{32}{figure.caption.18}}
+\newlabel{fig_gaussian_blur}{{3.8}{32}{An example of Gaussian blur and bilateral filter\relax }{figure.caption.18}{}}
+\citation{chaudhury2011fast}
+\citation{imagej}
+\@writefile{toc}{\contentsline {subsubsection}{Naive bilateral filter algorithm}{33}{section*.20}}
+\newlabel{bilateral_filter}{{3.2.2}{33}{Naive bilateral filter algorithm\relax }{section*.20}{}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {2}{\ignorespaces Naive bilateral filter.\relax }}{33}{algocf.2}}
+\newlabel{algorithm_naive_bf}{{2}{33}{Naive bilateral filter algorithm\relax }{algocf.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Fast O(1) bilateral filter algorithm}{33}{section*.21}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}Practical approach}{34}{subsection.3.2.3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.9}{\ignorespaces A diagram illustrating the concept of partitioning}}{34}{figure.caption.22}}
+\newlabel{fig_partitioning}{{3.9}{34}{A diagram illustrating the concept of partitioning\relax }{figure.caption.22}{}}
+\citation{gdal}
+\@writefile{loa}{\contentsline {algocf}{\numberline {3}{\ignorespaces Pseudocode of the partitioning script used to split the image into smaller pieces.\relax }}{36}{algocf.3}}
+\newlabel{partitioning_algorithm}{{3}{36}{Practical approach\relax }{algocf.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Implementation with Hadoop}{36}{section*.23}}
+\citation{ec2_instancetypes}
+\citation{ec2_instancetypes}
+\@writefile{toc}{\contentsline {subsubsection}{Testing}{37}{section*.24}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.10}{\ignorespaces Parameters of the m1.small and m2.xlarge instance types}}{37}{figure.caption.25}}
+\newlabel{fig_instance_types}{{3.10}{37}{Parameters of the m1.small and m2.xlarge instance types\relax }{figure.caption.25}{}}
+\citation{paris2006fast}
+\citation{jni}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.11}{\ignorespaces Comparison between Hadoop 0.20.2 and 1.0.3}}{38}{figure.caption.26}}
+\newlabel{fig_hadoop_version_compare}{{3.11}{38}{Comparison between Hadoop 0.20.2 and 1.0.3\relax }{figure.caption.26}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.3}Discussion}{38}{section.3.3}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.4}Summary}{40}{section.3.4}}
 \@writefile{loa}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {chapter}{\numberline {4}Overview and discussion}{26}{chapter.4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.12}{\ignorespaces A comparison of processing time with regard to speed-up}}{41}{figure.caption.27}}
+\newlabel{bf_speedup}{{3.12}{41}{A comparison of processing time with regard to speed-up\relax }{figure.caption.27}{}}
+\citation{hadoopfaq}
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}Conclusions}{42}{chapter.4}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{loa}{\addvspace {10\p@ }}
+\citation{ekanayake2010twister,bu2010haloop,zaharia2010spark}
+\citation{valiant1990bridging,gropp1999using}
+\citation{pharr2005gpu}
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}Future work}{44}{chapter.5}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{loa}{\addvspace {10\p@ }}
+\@writefile{loa}{\addvspace {10\p@ }}
+\@writefile{loa}{\addvspace {10\p@ }}
+\@writefile{toc}{\contentsline {chapter}{Res\IeC {\"u}mee (Eesti keeles)}{47}{chapter*.30}}
 \bibstyle{plain}
 \bibdata{bibliography}
 \bibcite{citeulike:2631015}{1}
 \bibcite{aurich1995non}{2}
-\bibcite{Dean:2008:MSD:1327452.1327492}{3}
-\bibcite{website:facebook_namenode_improvements}{4}
-\bibcite{website:amazon_ec2}{5}
-\bibcite{trease08}{6}
-\bibcite{Hawick:2003:DFP:958021.958024}{7}
-\bibcite{Lv:2010:PKC:1927661.1927687}{8}
-\bibcite{bf_course}{9}
-\bibcite{Pereira:2010:ADH:1844768.1845374}{10}
-\@writefile{toc}{\contentsline {chapter}{Bibliography}{27}{chapter.4}}
+\bibcite{bay2006surf}{3}
+\bibcite{borthakur2007hadoop}{4}
+\bibcite{bu2010haloop}{5}
+\bibcite{chaudhury2011fast}{6}
+\bibcite{Dean:2008:MSD:1327452.1327492}{7}
+\bibcite{website:facebook_namenode_improvements}{8}
+\bibcite{ekanayake2010twister}{9}
+\bibcite{japan2002jeita}{10}
+\@writefile{toc}{\contentsline {chapter}{Bibliography}{49}{section*.33}}
 \@writefile{loa}{\addvspace {10\p@ }}
-\bibcite{5446706}{11}
-\bibcite{imagej}{12}
-\bibcite{smith1997susan}{13}
-\bibcite{srirama2012adapting}{14}
-\bibcite{tomasi1998bilateral}{15}
-\bibcite{wang2011ult}{16}
-\bibcite{White:2010:WCV:1814245.1814254}{17}
-\bibcite{youtube_stats}{18}
-\bibcite{Zhang:2009:CSS:2127968.2128002}{19}
+\bibcite{hadoopfaq}{11}
+\bibcite{hadoopstreaming}{12}
+\bibcite{gdal}{13}
+\bibcite{ghemawat2003google}{14}
+\bibcite{gropp1999using}{15}
+\bibcite{trease08}{16}
+\bibcite{Hawick:2003:DFP:958021.958024}{17}
+\bibcite{herodotou2011starfish}{18}
+\bibcite{website:amazon_ec2}{19}
+\bibcite{ec2_instancetypes}{20}
+\bibcite{hadooppipes}{21}
+\bibcite{Lv:2010:PKC:1927661.1927687}{22}
+\bibcite{mahammad2003geotiff}{23}
+\bibcite{metadataextractor}{24}
+\bibcite{portusproject}{25}
+\bibcite{opencv}{26}
+\bibcite{jni}{27}
+\bibcite{pandore}{28}
+\bibcite{paris2006fast}{29}
+\bibcite{bf_course}{30}
+\bibcite{Pereira:2010:ADH:1844768.1845374}{31}
+\bibcite{pharr2005gpu}{32}
+\bibcite{5446706}{33}
+\bibcite{imagej}{34}
+\bibcite{saxena2008}{35}
+\bibcite{tesseract}{36}
+\bibcite{smith1997susan}{37}
+\bibcite{srirama2012adapting}{38}
+\bibcite{sudo2009associative}{39}
+\bibcite{tomasi1998bilateral}{40}
+\bibcite{valiant1990bridging}{41}
+\bibcite{wang2011ult}{42}
+\bibcite{White:2010:WCV:1814245.1814254}{43}
+\bibcite{white2012hadoop}{44}
+\bibcite{lenna}{45}
+\bibcite{ext3}{46}
+\bibcite{youtube_stats}{47}
+\bibcite{zaharia2010spark}{48}
+\bibcite{Zhang:2009:CSS:2127968.2128002}{49}
+\@writefile{loa}{\addvspace {10\p@ }}
+\@writefile{toc}{\contentsline {chapter}{Licence}{54}{chapter*.35}}

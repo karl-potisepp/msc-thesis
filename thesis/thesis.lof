@@ -1,0 +1,21 @@
+\select@language {english}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Differences between local and non-local processing}}{6}{figure.caption.2}
+\contentsline {figure}{\numberline {1.2}{\ignorespaces Data requirements of iterative local processing}}{7}{figure.caption.3}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces A simple example of the MapReduce computation model}}{14}{figure.caption.4}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces A photo of random scenery}}{21}{figure.caption.7}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces A photo of an archaeological find}}{22}{figure.caption.9}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces A photo of an excavation site}}{23}{figure.caption.10}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Screenshot of \textit {find\_obj}}}{25}{figure.caption.13}
+\contentsline {figure}{\numberline {3.5}{\ignorespaces The query image used for object recognition.\relax }}{26}{figure.caption.14}
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Step-by-step example of region extraction}}{28}{figure.caption.15}
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Bilateral filter example on microscope image}}{30}{figure.caption.16}
+\contentsline {figure}{\numberline {3.8}{\ignorespaces An example of Gaussian blur and bilateral filter}}{32}{figure.caption.18}
+\contentsline {figure}{\numberline {3.9}{\ignorespaces A diagram illustrating the concept of partitioning}}{34}{figure.caption.22}
+\contentsline {figure}{\numberline {3.10}{\ignorespaces Parameters of the m1.small and m2.xlarge instance types}}{37}{figure.caption.25}
+\contentsline {figure}{\numberline {3.11}{\ignorespaces Comparison between Hadoop 0.20.2 and 1.0.3}}{38}{figure.caption.26}
+\contentsline {figure}{\numberline {3.12}{\ignorespaces A comparison of processing time with regard to speed-up}}{41}{figure.caption.27}
+\addvspace {10\p@ }
+\addvspace {10\p@ }

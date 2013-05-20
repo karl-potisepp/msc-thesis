@@ -13,52 +13,77 @@ Warning--entry type for "youtube_stats" isn't style-file defined
 --line 209 of file bibliography.bib
 Warning--entry type for "bf_course" isn't style-file defined
 --line 246 of file bibliography.bib
+Warning--entry type for "portusproject" isn't style-file defined
+--line 279 of file bibliography.bib
+Warning--entry type for "opencv" isn't style-file defined
+--line 287 of file bibliography.bib
+Warning--entry type for "tesseract" isn't style-file defined
+--line 295 of file bibliography.bib
+Warning--entry type for "metadataextractor" isn't style-file defined
+--line 303 of file bibliography.bib
+Warning--entry type for "ext3" isn't style-file defined
+--line 356 of file bibliography.bib
+Warning--entry type for "lenna" isn't style-file defined
+--line 378 of file bibliography.bib
+Warning--entry type for "ec2_instancetypes" isn't style-file defined
+--line 386 of file bibliography.bib
+Warning--entry type for "gdal" isn't style-file defined
+--line 394 of file bibliography.bib
+Warning--entry type for "hadoopfaq" isn't style-file defined
+--line 448 of file bibliography.bib
+Warning--entry type for "jni" isn't style-file defined
+--line 493 of file bibliography.bib
+Warning--entry type for "hadoopstreaming" isn't style-file defined
+--line 527 of file bibliography.bib
+Warning--entry type for "hadooppipes" isn't style-file defined
+--line 535 of file bibliography.bib
 Warning--to sort, need editor, organization, or key in citeulike:2631015
 Too many commas in name 1 of "H. Trease, D. Fraser, R. Farber, S. Elbert" for entry trease08
 while executing---line 1049 of file plain.bst
+Warning--can't use both volume and number fields in ghemawat2003google
 Too many commas in name 1 of "H. Trease, D. Fraser, R. Farber, S. Elbert" for entry trease08
 while executing---line 1090 of file plain.bst
 Warning--empty journal in trease08
 Warning--empty year in trease08
-You've used 19 entries,
+You've used 49 entries,
             2118 wiz_defined-function locations,
-            617 strings with 7697 characters,
-and the built_in function-call counts, 6935 in all, are:
-= -- 691
-> -- 310
-< -- 7
-+ -- 126
-- -- 104
-* -- 473
-:= -- 1081
-add.period$ -- 55
-call.type$ -- 19
-change.case$ -- 108
+            748 strings with 11330 characters,
+and the built_in function-call counts, 15668 in all, are:
+= -- 1517
+> -- 708
+< -- 14
++ -- 291
+- -- 234
+* -- 993
+:= -- 2493
+add.period$ -- 137
+call.type$ -- 49
+change.case$ -- 260
 chr.to.int$ -- 0
-cite$ -- 22
-duplicate$ -- 271
-empty$ -- 563
-format.name$ -- 104
-if$ -- 1506
+cite$ -- 53
+duplicate$ -- 610
+empty$ -- 1321
+format.name$ -- 234
+if$ -- 3373
 int.to.chr$ -- 0
-int.to.str$ -- 19
-missing$ -- 13
-newline$ -- 90
-num.names$ -- 36
-pop$ -- 140
+int.to.str$ -- 49
+missing$ -- 33
+newline$ -- 228
+num.names$ -- 94
+pop$ -- 376
 preamble$ -- 1
-purify$ -- 90
+purify$ -- 215
 quote$ -- 0
-skip$ -- 219
+skip$ -- 495
 stack$ -- 0
-substring$ -- 434
-swap$ -- 81
-text.length$ -- 7
+substring$ -- 833
+swap$ -- 159
+text.length$ -- 14
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 75
-warning$ -- 3
-while$ -- 65
-width$ -- 21
-write$ -- 201
+type$ -- 189
+warning$ -- 4
+while$ -- 147
+width$ -- 51
+write$ -- 493
 (There were 2 error messages)
